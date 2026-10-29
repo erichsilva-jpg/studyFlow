@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - Plataforma Adaptativa de Estudos e Simulados</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // Indigo 600
+                        secondary: '#10B981', // Emerald 500
+                        accent: '#F59E0B', // Amber 500
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in { animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center z-20">
+        <div class="flex items-center gap-2">
+            <span class="text-xl font-bold text-primary"><i class="fa-solid fa-graduation-cap"></i> StudyFlow</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-orange-500"><i class="fa-solid fa-fire"></i> <span id="mobile-streak">0</span></span>
+            <button onclick="App.toggleTheme()" class="text-gray-500 hover:text-gray-900 dark:hover:text-white p-1">
+                <i class="fa-solid fa-circle-half-stroke"></i>
+            </button>
+            <button onclick="App.toggleMobileMenu()" class="text-gray-600 dark:text-gray-300 p-1">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="main-sidebar" class="w-full md:w-64 bg-white dark:bg-gray-800 shadow-lg md:shadow-md flex flex-col justify-between hidden md:flex z-30 transition-all duration-200">
+        <div>
+            <div class="p-6 border-b dark:border-gray-700 text-center">
+                <h1 class="text-2xl font-black text-primary tracking-tight"><i class="fa-solid fa-graduation-cap"></i> StudyFlow</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium" id="sidebar-meta">Meta não definida</p>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <button onclick="App.navigate('dashboard')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="dashboard">
+                    <i class="fa-solid fa-calendar-day w-6 text-primary"></i> 
+                    <span class="font-semibold">Hoje</span>
+                </button>
+                <button onclick="App.navigate('trilha')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="trilha">
+                    <i class="fa-solid fa-route w-6 text-emerald-500"></i> 
+                    <span>Edital / Trilha</span>
+                </button>
+                <button onclick="App.navigate('simulados')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="simulados">
+                    <i class="fa-solid fa-file-pen w-6 text-sky-500"></i> 
+                    <span>Simulado Adaptativo</span>
+                </button>
+                <button onclick="App.navigate('teste-final')" class="nav-btn w-full flex items-center justify-between p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="teste-final">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-award w-6 text-amber-500"></i> 
+                        <span class="font-bold">Teste Final</span>
+                    </div>
+                    <span class="bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Oficial</span>
+                </button>
+                <button onclick="App.navigate('stats')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="stats">
+                    <i class="fa-solid fa-chart-line w-6 text-purple-500"></i> 
+                    <span>Desempenho</span>
+                </button>
+                <button onclick="App.navigate('onboarding')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="onboarding">
+                    <i class="fa-solid fa-sliders w-6 text-gray-400"></i> 
+                    <span>Configurar Meta</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t dark:border-gray-700 space-y-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-indigo-400 text-white flex items-center justify-center font-bold shadow-sm">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-sm">Nível <span id="user-level">1</span></p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-fire text-orange-500"></i> <span id="user-streak">0</span> dias seguidos</p>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <span>Progresso de XP</span>
+                    <span id="user-xp">0 XP</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div id="user-xp-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Botão de Recomeçar Estudos -->
+            <button onclick="App.abrirModalRecomecar()" class="w-full text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-2 rounded-lg transition flex items-center justify-center gap-2 border border-rose-200 dark:border-rose-900/50">
+                <i class="fa-solid fa-rotate-left"></i> Recomeçar Estudos
+            </button>
+
+            <button onclick="App.toggleTheme()" class="w-full text-xs text-gray-500 hover:text-gray-800 dark:hover:text-white text-center block pt-1">
+                <i class="fa-solid fa-circle-half-stroke mr-1"></i> Alternar Tema
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 relative">
+        
+        <!-- Onboarding View -->
+        <section id="view-onboarding" class="view-section hidden max-w-2xl mx-auto p-6 md:p-10 mt-4 md:mt-8">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+                <div class="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <h2 class="text-3xl font-black mb-2 text-center tracking-tight">Defina seu Objetivo</h2>
+                <p class="text-gray-500 dark:text-gray-400 mb-8 text-center text-sm">O StudyFlow calculará seu cronograma adaptativo distribuindo todas as 7 disciplinas curriculares até o dia da sua prova.</p>
+                
+                <form id="onboarding-form" class="space-y-6">
+                    <div>
+                        <label class="block mb-2 text-sm font-bold">Foco Principal / Exame</label>
+                        <select id="obj-exame" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                            <option value="ENEM">ENEM (Exame Nacional do Ensino Médio)</option>
+                            <option value="Medicina Fuvest">Medicina Fuvest / Vestibulares Paulistas</option>
+                            <option value="Concurso Público">Concurso Público Geral</option>
+                            <option value="OAB">Exame de Ordem (OAB)</option>
+                            <option value="Reforço Escolar/Faculdade">Reforço Geral e Faculdade</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-bold">Data Prevista da Prova</label>
+                            <input type="date" id="obj-data" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-bold">Horas de Estudo por Dia</label>
+                            <input type="number" id="obj-horas" min="1" max="14" placeholder="Ex: 3" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/25 transition flex items-center justify-center gap-2">
+                        Gerar Meu Plano Inteligente <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard / Hoje View -->
+        <section id="view-dashboard" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Minha Rotina Hoje</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1" id="today-date"></p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="App.openPomodoro()" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-md shadow-rose-500/20 flex items-center gap-2 text-sm transition">
+                        <i class="fa-solid fa-stopwatch"></i> Timer Pomodoro
+                    </button>
+                    <button onclick="App.navigate('teste-final')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 text-sm transition">
+                        <i class="fa-solid fa-award"></i> Teste Final
+                    </button>
+                    <button onclick="App.reiniciarEstudosERotina()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition flex items-center gap-2" title="Reiniciar estudos e a rotina de teste">
+                        <i class="fa-solid fa-rotate-left"></i> Reiniciar Estudos & Testes
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Lista de Tarefas do Dia -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg">Tarefas Agendadas</h3>
+                        <span class="text-xs text-gray-500" id="tarefas-contador-label">0 tarefas</span>
+                    </div>
+                    <div id="tarefas-hoje-container" class="space-y-3">
+                        <!-- Tarefas injetadas dinamicamente -->
+                    </div>
+                    <!-- Botão Próximo Conteúdo a Estudar -->
+                    <div id="proximo-conteudo-wrapper" class="pt-2">
+                        <!-- Injetado dinamicamente com base no status das tarefas -->
+                    </div>
+                </div>
+                
+                <!-- Progresso Lateral do Edital -->
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+                        <h3 class="font-bold text-base mb-4 text-gray-700 dark:text-gray-300">Cobertura do Edital</h3>
+                        <div class="relative w-36 h-36 mx-auto mb-4">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-gray-100 dark:text-gray-700" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="edital-progress-circle" class="text-secondary transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="font-black text-2xl" id="edital-progress-text">0%</span>
+                                <span class="text-[10px] text-gray-400 font-semibold uppercase">Concluído</span>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400" id="edital-progress-label">0 de 0 tópicos concluídos</p>
+                    </div>
+
+                    <!-- Card de Ação Rápida -->
+                    <div class="bg-gradient-to-br from-indigo-500 to-primary text-white p-6 rounded-3xl shadow-md">
+                        <h4 class="font-black text-lg mb-1"><i class="fa-solid fa-graduation-cap"></i> Pronto para o Teste?</h4>
+                        <p class="text-xs text-indigo-100 mb-4">Teste seus conhecimentos em todas as 7 áreas curriculares no nosso Teste Final com diagnóstico TRI.</p>
+                        <button onclick="App.navigate('teste-final')" class="w-full bg-white text-primary font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-indigo-50 transition shadow">
+                            Fazer Teste Final Agora
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Edital / Trilha View (Disciplinas Expandidas) -->
+        <section id="view-trilha" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Trilha de Aprendizagem</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Todas as disciplinas e tópicos programáticos do seu exame.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <button onclick="App.reiniciarTodosConteudosEstudados()" class="w-full sm:w-auto bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Reiniciar Conteúdos Estudados
+                    </button>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="trilha-busca" oninput="App.filtrarTrilha(this.value)" placeholder="Buscar tópico ou matéria..." class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="materias-container" class="space-y-6">
+                <!-- Disciplinas e tópicos injetados por JS -->
+            </div>
+        </section>
+
+        <!-- Simulados Adaptativos View -->
+        <section id="view-simulados" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Simulados Adaptativos</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Puxa questões <strong>estritamente</strong> dos tópicos que você já concluiu no edital.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-filter"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-lg">Gerar Novo Simulado Sob Demanda</h3>
+                        <p class="text-xs text-gray-500">Garante que você nunca será cobrado por matéria que ainda não teve tempo de estudar.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mt-6">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-gray-500">Quantidade de Questões</label>
+                        <select id="sim-qtd" class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 font-semibold outline-none focus:ring-2 focus:ring-primary">
+                            <option value="5">Rápido (5 Questões)</option>
+                            <option value="10" selected>Padrão (10 Questões)</option>
+                            <option value="15">Avançado (15 Questões)</option>
+                        </select>
+                    </div>
+                    <button onclick="App.iniciarSimulado()" class="bg-primary hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Iniciar Simulado
+                    </button>
+                </div>
+                <div id="sim-error-msg" class="text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-xl mt-4 text-xs font-semibold hidden flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Você ainda não concluiu tópicos suficientes para este simulado! Marque algumas tarefas como concluídas na aba "Hoje" primeiro.
+                </div>
+            </div>
+
+            <div id="simulados-historico" class="space-y-4">
+                <h3 class="font-bold text-xl border-b pb-3 dark:border-gray-700">Histórico de Simulados Adaptativos</h3>
+                <!-- Injetado por JS -->
+            </div>
+        </section>
+
+        <!-- Execução do Simulado Adaptativo (Fullscreen) -->
+        <section id="view-simulado-exec" class="view-section hidden absolute inset-0 bg-white dark:bg-gray-900 z-40 flex flex-col">
+            <header class="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-6">
+                <div class="flex items-center gap-2">
+                    <span class="font-black text-primary"><i class="fa-solid fa-file-pen"></i> Simulado Adaptativo</span>
+                </div>
+                <div class="text-rose-500 font-black font-mono text-xl flex items-center gap-2">
+                    <i class="fa-solid fa-clock"></i> <span id="sim-timer">00:00</span>
+                </div>
+                <button onclick="App.finalizarSimulado()" class="bg-secondary hover:bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold text-sm shadow transition">
+                    Entregar Prova
+                </button>
+            </header>
+            <div class="flex-1 overflow-y-auto p-6 md:p-10 max-w-3xl mx-auto w-full" id="sim-questoes-container">
+                <!-- Questões injetadas por JS -->
+            </div>
+        </section>
+
+        <!-- NOVO MÓDULO: TESTE FINAL DE CONHECIMENTOS -->
+        <section id="view-teste-final" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-900/40 text-amber-500 text-3xl mb-4 shadow-sm">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black tracking-tight">Grande Teste Final de Conhecimentos</h2>
+                <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm leading-relaxed">
+                    Avaliação abrangente e diagnóstica sobre <strong>todas as 7 áreas do conhecimento</strong> (Matemática, Biologia, Física, Química, História, Geografia e Linguagens). Meça sua prontidão real com estimativa da nota TRI!
+                </p>
+            </div>
+
+            <!-- Card de Configuração do Teste Final -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 max-w-2xl mx-auto mb-10">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-500"></i> Parâmetros do Teste Final
+                </h3>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-gray-500">Modalidade do Exame</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="border dark:border-gray-700 p-4 rounded-2xl cursor-pointer hover:border-amber-500 transition flex flex-col justify-between" id="label-mode-10">
+                                <input type="radio" name="final-mode" value="10" class="sr-only" onchange="App.selecionarModoTesteFinal(10)">
+                                <div>
+                                    <span class="font-bold text-sm block">Express</span>
+                                    <span class="text-xs text-gray-400">10 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 20 min</span>
+                            </label>
+                            <label class="border-2 border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between" id="label-mode-20">
+                                <input type="radio" name="final-mode" value="20" class="sr-only" checked onchange="App.selecionarModoTesteFinal(20)">
+                                <div>
+                                    <span class="font-bold text-sm block">Padrão Oficial</span>
+                                    <span class="text-xs text-gray-400">20 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 40 min</span>
+                            </label>
+                            <label class="border dark:border-gray-700 p-4 rounded-2xl cursor-pointer hover:border-amber-500 transition flex flex-col justify-between" id="label-mode-35">
+                                <input type="radio" name="final-mode" value="35" class="sr-only" onchange="App.selecionarModoTesteFinal(35)">
+                                <div>
+                                    <span class="font-bold text-sm block">Completo</span>
+                                    <span class="text-xs text-gray-400">35 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 70 min</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-2xl space-y-2 text-xs text-gray-600 dark:text-gray-300">
+                        <p class="font-bold text-gray-800 dark:text-gray-200"><i class="fa-solid fa-circle-info text-primary mr-1"></i> Regras da Prova Oficial:</p>
+                        <p>• Cronômetro regressivo contínuo com alerta nos últimos minutos.</p>
+                        <p>• Cartão de respostas interativo com marcação para revisão de dúvidas.</p>
+                        <p>• Bloco de rascunho retrátil para cálculos embutido na prova.</p>
+                        <p>• Diagnóstico pedagógico imediato com nota TRI estimada e gabarito comentado.</p>
+                    </div>
+
+                    <button onclick="App.iniciarTesteFinal()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-3 text-lg">
+                        <i class="fa-solid fa-rocket"></i> Iniciar Teste Final Oficial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico de Testes Finais -->
+            <div id="testes-finais-historico" class="max-w-2xl mx-auto space-y-4">
+                <h3 class="font-bold text-lg border-b pb-2 dark:border-gray-700">Seus Exames Finais Anteriores</h3>
+                <!-- Injetado por JS -->
+            </div>
+        </section>
+
+        <!-- EXECUÇÃO DO TESTE FINAL (MODO EXAME IMERSIVO COM CARTÃO DE RESPOSTAS) -->
+        <section id="view-teste-final-exec" class="view-section hidden fixed inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col">
+            <!-- Barra Superior do Exame -->
+            <header class="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-6">
+                <div class="flex items-center gap-3">
+                    <span class="bg-amber-500 text-white font-black text-xs px-2.5 py-1 rounded-lg">TESTE FINAL</span>
+                    <span class="font-bold text-sm hidden sm:inline" id="final-quest-counter">Questão 1 de 20</span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Cronômetro Regressivo Total -->
+                    <div class="bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 px-3.5 py-1.5 rounded-xl font-black font-mono text-base flex items-center gap-2" title="Tempo total restante da prova">
+                        <i class="fa-solid fa-hourglass-half"></i> <span id="final-timer-display">00:00</span>
+                    </div>
+
+                    <!-- Marcador de Tempo Nesta Questão -->
+                    <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-900/40 text-primary dark:text-indigo-300 px-3 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5" id="final-question-timer-badge" title="Tempo decorrido nesta questão">
+                        <i class="fa-solid fa-stopwatch text-indigo-500"></i> 
+                        <span class="text-[11px] font-sans font-semibold text-gray-500 dark:text-gray-400 hidden sm:inline">Nesta Questão:</span>
+                        <span id="final-quest-timer-display">00:00</span>
+                    </div>
+
+                    <!-- Bloco de Rascunho -->
+                    <button onclick="App.toggleRascunho()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-pencil"></i> <span class="hidden sm:inline">Rascunho</span>
+                    </button>
+
+                    <!-- Botão Entregar -->
+                    <button onclick="App.confirmarEntregaTesteFinal()" class="bg-secondary hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition">
+                        Finalizar e Entregar
+                    </button>
+                </div>
+            </header>
+
+            <!-- Corpo da Prova: Questão Ativa + Cartão Lateral -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Área Principal: Questão com Navegação -->
+                <div class="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col justify-between">
+                    <div id="final-single-question-container" class="max-w-3xl mx-auto w-full">
+                        <!-- Injetado dinamicamente pela questão ativa -->
+                    </div>
+
+                    <!-- Botões de Anterior / Próximo e Marcar para Revisar -->
+                    <div class="max-w-3xl mx-auto w-full pt-8 flex justify-between items-center border-t dark:border-gray-800">
+                        <button onclick="App.prevFinalQuestion()" id="btn-final-prev" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Anterior
+                        </button>
+
+                        <button onclick="App.toggleMarkReviewCurrent()" id="btn-final-review" class="text-xs font-bold px-4 py-2 rounded-xl border border-amber-400 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Marcar para Revisar
+                        </button>
+
+                        <button onclick="App.nextFinalQuestion()" id="btn-final-next" class="bg-primary hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center gap-2">
+                            Próxima <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel Lateral: Cartão de Respostas -->
+                <aside class="w-72 border-l dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-6 hidden lg:flex flex-col justify-between overflow-y-auto">
+                    <div>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-gray-500 mb-4 flex items-center justify-between">
+                            <span>Cartão de Respostas</span>
+                            <span class="text-xs text-primary font-mono" id="final-card-progress">0/20</span>
+                        </h4>
+                        
+                        <!-- Legenda -->
+                        <div class="grid grid-cols-3 gap-1 text-[11px] text-gray-500 mb-4 pb-3 border-b dark:border-gray-700">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700 inline-block"></span> Vazia
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-primary inline-block"></span> Feita
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Revisar
+                            </div>
+                        </div>
+
+                        <!-- Grade de Botões de Questões -->
+                        <div class="grid grid-cols-5 gap-2" id="final-card-grid">
+                            <!-- Injetado por JS -->
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t dark:border-gray-700">
+                        <button onclick="App.confirmarEntregaTesteFinal()" class="w-full bg-secondary hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow transition">
+                            Entregar Exame
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- RELATÓRIO DIAGNÓSTICO DO TESTE FINAL -->
+        <section id="view-teste-final-resultado" class="view-section p-6 md:p-10 max-w-4xl mx-auto hidden">
+            <!-- Header do Resultado -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center mb-8">
+                <div class="inline-block p-4 rounded-3xl bg-primary/10 text-primary text-4xl mb-4">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h2 class="text-3xl font-black tracking-tight mb-1">Diagnóstico do Teste Final</h2>
+                <p class="text-gray-500 text-sm mb-6" id="final-report-date">Concluído hoje</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-6">
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border dark:border-gray-700">
+                        <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Nota Geral</span>
+                        <span class="text-3xl font-black text-primary" id="final-report-pct">0%</span>
+                        <span class="text-[11px] text-gray-400 block mt-1" id="final-report-raw">0 de 0 acertos</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50">
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-bold uppercase block mb-1">Nota TRI</span>
+                        <span class="text-3xl font-black text-amber-500" id="final-report-tri">0</span>
+                        <span class="text-[11px] text-amber-600/70 block mt-1">Escala ENEM</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border dark:border-gray-700">
+                        <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Tempo Total</span>
+                        <span class="text-2xl font-black text-gray-700 dark:text-gray-300" id="final-report-tempo">00:00</span>
+                        <span class="text-[11px] text-gray-400 block mt-1">Duração Prova</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50">
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase block mb-1">Média / Questão</span>
+                        <span class="text-2xl font-black text-primary" id="final-report-tempo-medio">00:00</span>
+                        <span class="text-[11px] text-gray-400 block mt-1" id="final-report-ritmo-badge">Ritmo Ideal</span>
+                    </div>
+                </div>
+
+                <div class="inline-block px-4 py-2 rounded-xl text-sm font-bold mb-4" id="final-report-badge">
+                    Nível Competitivo
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-300 max-w-xl mx-auto" id="final-report-veredito"></p>
+            </div>
+
+            <!-- Desempenho Segmentado por Disciplina -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-primary"></i> Desempenho por Grande Área
+                </h3>
+                <div class="space-y-4" id="final-report-materias">
+                    <!-- Barras de matérias injetadas por JS -->
+                </div>
+            </div>
+
+            <!-- Ação de Reforço Automático -->
+            <div id="final-reforco-card" class="bg-gradient-to-r from-rose-500 to-rose-600 text-white p-6 rounded-3xl shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h4 class="font-black text-lg mb-1"><i class="fa-solid fa-bolt"></i> Ciclo Fechado: Reforçar Lacunas</h4>
+                    <p class="text-xs text-rose-100" id="final-reforco-desc">Foram identificados tópicos com erro. Deseja adicioná-los como prioridade na sua rotina?</p>
+                </div>
+                <button onclick="App.agendarReforcoDoTesteFinal()" class="bg-white text-rose-600 font-bold px-5 py-3 rounded-xl text-sm shadow hover:bg-rose-50 transition whitespace-nowrap">
+                    Agendar Revisão Urgente
+                </button>
+            </div>
+
+            <!-- Gabarito Comentado Completo -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-500"></i> Gabarito Oficial e Resolução Comentada
+                </h3>
+                <div class="space-y-6" id="final-report-gabarito">
+                    <!-- Gabarito comentado injetado por JS -->
+                </div>
+            </div>
+
+            <div class="text-center pb-12">
+                <button onclick="App.navigate('dashboard')" class="bg-primary hover:bg-indigo-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition">
+                    Voltar ao Meu Dashboard
+                </button>
+            </div>
+        </section>
+
+        <!-- Desempenho & Estatísticas Gerais -->
+        <section id="view-stats" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <h2 class="text-3xl font-black tracking-tight mb-6">Estatísticas Gerais</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Simulados Adaptativos</span>
+                    <p class="text-4xl font-black text-primary" id="stats-sim-total">0</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Média de Acertos</span>
+                    <p class="text-4xl font-black text-secondary"><span id="stats-sim-media">0</span>%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Testes Finais Feitos</span>
+                    <p class="text-4xl font-black text-amber-500" id="stats-final-total">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-indigo-500"></i> Diagnóstico Contínuo da IA
+                </h3>
+                <ul id="recomenda-lista" class="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+                    <!-- Injetado por JS -->
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Pomodoro -->
+    <div id="pomodoro-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl text-center max-w-md w-full border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-1">
+                <h3 class="text-2xl font-black">Timer Pomodoro</h3>
+                <button onclick="App.closePomodoro()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 mb-5">Mantenha foco absoluto na sua meta de estudos</p>
+            
+            <div class="text-6xl font-black font-mono mb-6 text-rose-500" id="pom-display">25:00</div>
+
+            <!-- Ajustador de Tempo Pomodoro -->
+            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-2xl mb-6 border border-gray-100 dark:border-gray-700/60 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Ajustar Duração do Foco</label>
+                
+                <!-- Chips de tempos rápidos -->
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button type="button" onclick="App.setPomodoroMinutes(15)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="15">15 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(25)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-primary bg-primary/10 text-primary transition" data-min="25">25 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(30)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="30">30 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(45)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="45">45 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(50)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="50">50 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(60)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="60">60 min</button>
+                </div>
+
+                <!-- Campo de tempo livre personalizado -->
+                <div class="flex items-center gap-2 pt-2 border-t dark:border-gray-800">
+                    <span class="text-xs font-medium text-gray-500">Tempo livre:</span>
+                    <input type="number" id="pom-custom-input" min="1" max="180" value="25" placeholder="Min" class="w-20 p-2 text-xs font-bold text-center rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-primary">
+                    <span class="text-xs font-medium text-gray-400">minutos</span>
+                    <button type="button" onclick="App.applyCustomPomodoro()" class="bg-primary hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm ml-auto">
+                        Aplicar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controles do Pomodoro -->
+            <div class="flex justify-center gap-2">
+                <button onclick="App.startPomodoro()" class="bg-primary hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-1.5"><i class="fa-solid fa-play"></i> Iniciar</button>
+                <button onclick="App.pausePomodoro()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-1.5"><i class="fa-solid fa-pause"></i> Pausa</button>
+                <button onclick="App.resetPomodoro()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-1.5"><i class="fa-solid fa-rotate-left"></i> Resetar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rascunho do Exame -->
+    <div id="rascunho-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl max-w-lg w-full border border-gray-100 dark:border-gray-700 flex flex-col h-96">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-pencil text-amber-500"></i> Bloco de Rascunho</h3>
+                <button onclick="App.toggleRascunho()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">Utilize este espaço para cálculos e anotações. Salva automaticamente.</p>
+            <textarea id="rascunho-textarea" class="flex-1 w-full p-3 text-sm rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 font-mono resize-none outline-none focus:ring-2 focus:ring-primary" placeholder="Faça seus cálculos e anotações aqui..."></textarea>
+            <div class="flex justify-end mt-3">
+                <button onclick="App.toggleRascunho()" class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RECOMEÇAR OS ESTUDOS -->
+    <div id="modal-recomecar" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100 dark:border-gray-700 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/40 text-rose-500 text-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-2">Recomeçar os Estudos</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Escolha como deseja reiniciar sua jornada no StudyFlow:</p>
+
+            <div class="space-y-3 mb-6 text-left">
+                <!-- Opção 1: Reiniciar Apenas Conteúdos Estudados -->
+                <button onclick="App.executarReset(3)" class="w-full p-4 rounded-2xl border-2 border-emerald-300 dark:border-emerald-900/50 hover:border-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-rotate-left text-secondary text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm block">Reiniciar Conteúdos Estudados</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Volta todos os tópicos dominados para 'Pendente' para que você possa estudá-los novamente. Mantém seu XP e histórico.</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Opção 2: Reiniciar Toda a Trilha -->
+                <button onclick="App.executarReset(1)" class="w-full p-4 rounded-2xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-arrows-rotate text-primary text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm block">Reiniciar Toda a Trilha e Tarefas</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Mantém sua meta e horas diárias. Zera as tarefas e status dos tópicos para recomeçar o cronograma do dia 1.</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Opção 3: Reset de Fábrica -->
+                <button onclick="App.executarReset(2)" class="w-full p-4 rounded-2xl border-2 border-rose-300 dark:border-rose-900/50 hover:border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-trash-can text-rose-500 text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm text-rose-500 block">Reset Total de Fábrica</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Zera absolutamente tudo (perfil, XP, histórico de simulados e provas) e reabre o formulário de boas-vindas.</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <button onclick="App.fecharModalRecomecar()" class="w-full text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2">
+                Cancelar e Manter Meu Progresso
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts da Aplicação Modular -->
+    <script src="js/data.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/algorithms.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

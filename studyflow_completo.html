@@ -1,0 +1,2918 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - Plataforma Adaptativa de Estudos e Simulados</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // Indigo 600
+                        secondary: '#10B981', // Emerald 500
+                        accent: '#F59E0B', // Amber 500
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in { animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center z-20">
+        <div class="flex items-center gap-2">
+            <span class="text-xl font-bold text-primary"><i class="fa-solid fa-graduation-cap"></i> StudyFlow</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-orange-500"><i class="fa-solid fa-fire"></i> <span id="mobile-streak">0</span></span>
+            <button onclick="App.toggleTheme()" class="text-gray-500 hover:text-gray-900 dark:hover:text-white p-1">
+                <i class="fa-solid fa-circle-half-stroke"></i>
+            </button>
+            <button onclick="App.toggleMobileMenu()" class="text-gray-600 dark:text-gray-300 p-1">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="main-sidebar" class="w-full md:w-64 bg-white dark:bg-gray-800 shadow-lg md:shadow-md flex flex-col justify-between hidden md:flex z-30 transition-all duration-200">
+        <div>
+            <div class="p-6 border-b dark:border-gray-700 text-center">
+                <h1 class="text-2xl font-black text-primary tracking-tight"><i class="fa-solid fa-graduation-cap"></i> StudyFlow</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium" id="sidebar-meta">Meta não definida</p>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <button onclick="App.navigate('dashboard')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="dashboard">
+                    <i class="fa-solid fa-calendar-day w-6 text-primary"></i> 
+                    <span class="font-semibold">Hoje</span>
+                </button>
+                <button onclick="App.navigate('trilha')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="trilha">
+                    <i class="fa-solid fa-route w-6 text-emerald-500"></i> 
+                    <span>Edital / Trilha</span>
+                </button>
+                <button onclick="App.navigate('simulados')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="simulados">
+                    <i class="fa-solid fa-file-pen w-6 text-sky-500"></i> 
+                    <span>Simulado Adaptativo</span>
+                </button>
+                <button onclick="App.navigate('teste-final')" class="nav-btn w-full flex items-center justify-between p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="teste-final">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-award w-6 text-amber-500"></i> 
+                        <span class="font-bold">Teste Final</span>
+                    </div>
+                    <span class="bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Oficial</span>
+                </button>
+                <button onclick="App.navigate('stats')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="stats">
+                    <i class="fa-solid fa-chart-line w-6 text-purple-500"></i> 
+                    <span>Desempenho</span>
+                </button>
+                <button onclick="App.navigate('onboarding')" class="nav-btn w-full flex items-center p-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition" data-target="onboarding">
+                    <i class="fa-solid fa-sliders w-6 text-gray-400"></i> 
+                    <span>Configurar Meta</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t dark:border-gray-700 space-y-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-indigo-400 text-white flex items-center justify-center font-bold shadow-sm">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-sm">Nível <span id="user-level">1</span></p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-fire text-orange-500"></i> <span id="user-streak">0</span> dias seguidos</p>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <span>Progresso de XP</span>
+                    <span id="user-xp">0 XP</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div id="user-xp-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Botão de Recomeçar Estudos -->
+            <button onclick="App.abrirModalRecomecar()" class="w-full text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-2 rounded-lg transition flex items-center justify-center gap-2 border border-rose-200 dark:border-rose-900/50">
+                <i class="fa-solid fa-rotate-left"></i> Recomeçar Estudos
+            </button>
+
+            <button onclick="App.toggleTheme()" class="w-full text-xs text-gray-500 hover:text-gray-800 dark:hover:text-white text-center block pt-1">
+                <i class="fa-solid fa-circle-half-stroke mr-1"></i> Alternar Tema
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 relative">
+        
+        <!-- Onboarding View -->
+        <section id="view-onboarding" class="view-section hidden max-w-2xl mx-auto p-6 md:p-10 mt-4 md:mt-8">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+                <div class="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <h2 class="text-3xl font-black mb-2 text-center tracking-tight">Defina seu Objetivo</h2>
+                <p class="text-gray-500 dark:text-gray-400 mb-8 text-center text-sm">O StudyFlow calculará seu cronograma adaptativo distribuindo todas as 7 disciplinas curriculares até o dia da sua prova.</p>
+                
+                <form id="onboarding-form" class="space-y-6">
+                    <div>
+                        <label class="block mb-2 text-sm font-bold">Foco Principal / Exame</label>
+                        <select id="obj-exame" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                            <option value="ENEM">ENEM (Exame Nacional do Ensino Médio)</option>
+                            <option value="Medicina Fuvest">Medicina Fuvest / Vestibulares Paulistas</option>
+                            <option value="Concurso Público">Concurso Público Geral</option>
+                            <option value="OAB">Exame de Ordem (OAB)</option>
+                            <option value="Reforço Escolar/Faculdade">Reforço Geral e Faculdade</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-bold">Data Prevista da Prova</label>
+                            <input type="date" id="obj-data" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-bold">Horas de Estudo por Dia</label>
+                            <input type="number" id="obj-horas" min="1" max="14" placeholder="Ex: 3" class="w-full p-3.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/25 transition flex items-center justify-center gap-2">
+                        Gerar Meu Plano Inteligente <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard / Hoje View -->
+        <section id="view-dashboard" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Minha Rotina Hoje</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1" id="today-date"></p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="App.openPomodoro()" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-md shadow-rose-500/20 flex items-center gap-2 text-sm transition">
+                        <i class="fa-solid fa-stopwatch"></i> Timer Pomodoro
+                    </button>
+                    <button onclick="App.navigate('teste-final')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 text-sm transition">
+                        <i class="fa-solid fa-award"></i> Teste Final
+                    </button>
+                    <button onclick="App.reiniciarEstudosERotina()" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition flex items-center gap-2" title="Reiniciar estudos e a rotina de teste">
+                        <i class="fa-solid fa-rotate-left"></i> Reiniciar Estudos & Testes
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Lista de Tarefas do Dia -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg">Tarefas Agendadas</h3>
+                        <span class="text-xs text-gray-500" id="tarefas-contador-label">0 tarefas</span>
+                    </div>
+                    <div id="tarefas-hoje-container" class="space-y-3">
+                        <!-- Tarefas injetadas dinamicamente -->
+                    </div>
+                    <!-- Botão Próximo Conteúdo a Estudar -->
+                    <div id="proximo-conteudo-wrapper" class="pt-2">
+                        <!-- Injetado dinamicamente com base no status das tarefas -->
+                    </div>
+                </div>
+                
+                <!-- Progresso Lateral do Edital -->
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+                        <h3 class="font-bold text-base mb-4 text-gray-700 dark:text-gray-300">Cobertura do Edital</h3>
+                        <div class="relative w-36 h-36 mx-auto mb-4">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-gray-100 dark:text-gray-700" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="edital-progress-circle" class="text-secondary transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="font-black text-2xl" id="edital-progress-text">0%</span>
+                                <span class="text-[10px] text-gray-400 font-semibold uppercase">Concluído</span>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400" id="edital-progress-label">0 de 0 tópicos concluídos</p>
+                    </div>
+
+                    <!-- Card de Ação Rápida -->
+                    <div class="bg-gradient-to-br from-indigo-500 to-primary text-white p-6 rounded-3xl shadow-md">
+                        <h4 class="font-black text-lg mb-1"><i class="fa-solid fa-graduation-cap"></i> Pronto para o Teste?</h4>
+                        <p class="text-xs text-indigo-100 mb-4">Teste seus conhecimentos em todas as 7 áreas curriculares no nosso Teste Final com diagnóstico TRI.</p>
+                        <button onclick="App.navigate('teste-final')" class="w-full bg-white text-primary font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-indigo-50 transition shadow">
+                            Fazer Teste Final Agora
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Edital / Trilha View (Disciplinas Expandidas) -->
+        <section id="view-trilha" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Trilha de Aprendizagem</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Todas as disciplinas e tópicos programáticos do seu exame.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <button onclick="App.reiniciarTodosConteudosEstudados()" class="w-full sm:w-auto bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Reiniciar Conteúdos Estudados
+                    </button>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="trilha-busca" oninput="App.filtrarTrilha(this.value)" placeholder="Buscar tópico ou matéria..." class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="materias-container" class="space-y-6">
+                <!-- Disciplinas e tópicos injetados por JS -->
+            </div>
+        </section>
+
+        <!-- Simulados Adaptativos View -->
+        <section id="view-simulados" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight">Simulados Adaptativos</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Puxa questões <strong>estritamente</strong> dos tópicos que você já concluiu no edital.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-filter"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-lg">Gerar Novo Simulado Sob Demanda</h3>
+                        <p class="text-xs text-gray-500">Garante que você nunca será cobrado por matéria que ainda não teve tempo de estudar.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mt-6">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-gray-500">Quantidade de Questões</label>
+                        <select id="sim-qtd" class="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 font-semibold outline-none focus:ring-2 focus:ring-primary">
+                            <option value="5">Rápido (5 Questões)</option>
+                            <option value="10" selected>Padrão (10 Questões)</option>
+                            <option value="15">Avançado (15 Questões)</option>
+                        </select>
+                    </div>
+                    <button onclick="App.iniciarSimulado()" class="bg-primary hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Iniciar Simulado
+                    </button>
+                </div>
+                <div id="sim-error-msg" class="text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-xl mt-4 text-xs font-semibold hidden flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Você ainda não concluiu tópicos suficientes para este simulado! Marque algumas tarefas como concluídas na aba "Hoje" primeiro.
+                </div>
+            </div>
+
+            <div id="simulados-historico" class="space-y-4">
+                <h3 class="font-bold text-xl border-b pb-3 dark:border-gray-700">Histórico de Simulados Adaptativos</h3>
+                <!-- Injetado por JS -->
+            </div>
+        </section>
+
+        <!-- Execução do Simulado Adaptativo (Fullscreen) -->
+        <section id="view-simulado-exec" class="view-section hidden absolute inset-0 bg-white dark:bg-gray-900 z-40 flex flex-col">
+            <header class="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-6">
+                <div class="flex items-center gap-2">
+                    <span class="font-black text-primary"><i class="fa-solid fa-file-pen"></i> Simulado Adaptativo</span>
+                </div>
+                <div class="text-rose-500 font-black font-mono text-xl flex items-center gap-2">
+                    <i class="fa-solid fa-clock"></i> <span id="sim-timer">00:00</span>
+                </div>
+                <button onclick="App.finalizarSimulado()" class="bg-secondary hover:bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold text-sm shadow transition">
+                    Entregar Prova
+                </button>
+            </header>
+            <div class="flex-1 overflow-y-auto p-6 md:p-10 max-w-3xl mx-auto w-full" id="sim-questoes-container">
+                <!-- Questões injetadas por JS -->
+            </div>
+        </section>
+
+        <!-- NOVO MÓDULO: TESTE FINAL DE CONHECIMENTOS -->
+        <section id="view-teste-final" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-900/40 text-amber-500 text-3xl mb-4 shadow-sm">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black tracking-tight">Grande Teste Final de Conhecimentos</h2>
+                <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm leading-relaxed">
+                    Avaliação abrangente e diagnóstica sobre <strong>todas as 7 áreas do conhecimento</strong> (Matemática, Biologia, Física, Química, História, Geografia e Linguagens). Meça sua prontidão real com estimativa da nota TRI!
+                </p>
+            </div>
+
+            <!-- Card de Configuração do Teste Final -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 max-w-2xl mx-auto mb-10">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-500"></i> Parâmetros do Teste Final
+                </h3>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-gray-500">Modalidade do Exame</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="border dark:border-gray-700 p-4 rounded-2xl cursor-pointer hover:border-amber-500 transition flex flex-col justify-between" id="label-mode-10">
+                                <input type="radio" name="final-mode" value="10" class="sr-only" onchange="App.selecionarModoTesteFinal(10)">
+                                <div>
+                                    <span class="font-bold text-sm block">Express</span>
+                                    <span class="text-xs text-gray-400">10 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 20 min</span>
+                            </label>
+                            <label class="border-2 border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between" id="label-mode-20">
+                                <input type="radio" name="final-mode" value="20" class="sr-only" checked onchange="App.selecionarModoTesteFinal(20)">
+                                <div>
+                                    <span class="font-bold text-sm block">Padrão Oficial</span>
+                                    <span class="text-xs text-gray-400">20 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 40 min</span>
+                            </label>
+                            <label class="border dark:border-gray-700 p-4 rounded-2xl cursor-pointer hover:border-amber-500 transition flex flex-col justify-between" id="label-mode-35">
+                                <input type="radio" name="final-mode" value="35" class="sr-only" onchange="App.selecionarModoTesteFinal(35)">
+                                <div>
+                                    <span class="font-bold text-sm block">Completo</span>
+                                    <span class="text-xs text-gray-400">35 Questões</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-500 mt-2"><i class="fa-solid fa-clock"></i> 70 min</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-2xl space-y-2 text-xs text-gray-600 dark:text-gray-300">
+                        <p class="font-bold text-gray-800 dark:text-gray-200"><i class="fa-solid fa-circle-info text-primary mr-1"></i> Regras da Prova Oficial:</p>
+                        <p>• Cronômetro regressivo contínuo com alerta nos últimos minutos.</p>
+                        <p>• Cartão de respostas interativo com marcação para revisão de dúvidas.</p>
+                        <p>• Bloco de rascunho retrátil para cálculos embutido na prova.</p>
+                        <p>• Diagnóstico pedagógico imediato com nota TRI estimada e gabarito comentado.</p>
+                    </div>
+
+                    <button onclick="App.iniciarTesteFinal()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-3 text-lg">
+                        <i class="fa-solid fa-rocket"></i> Iniciar Teste Final Oficial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico de Testes Finais -->
+            <div id="testes-finais-historico" class="max-w-2xl mx-auto space-y-4">
+                <h3 class="font-bold text-lg border-b pb-2 dark:border-gray-700">Seus Exames Finais Anteriores</h3>
+                <!-- Injetado por JS -->
+            </div>
+        </section>
+
+        <!-- EXECUÇÃO DO TESTE FINAL (MODO EXAME IMERSIVO COM CARTÃO DE RESPOSTAS) -->
+        <section id="view-teste-final-exec" class="view-section hidden fixed inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col">
+            <!-- Barra Superior do Exame -->
+            <header class="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-6">
+                <div class="flex items-center gap-3">
+                    <span class="bg-amber-500 text-white font-black text-xs px-2.5 py-1 rounded-lg">TESTE FINAL</span>
+                    <span class="font-bold text-sm hidden sm:inline" id="final-quest-counter">Questão 1 de 20</span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Cronômetro Regressivo Total -->
+                    <div class="bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 px-3.5 py-1.5 rounded-xl font-black font-mono text-base flex items-center gap-2" title="Tempo total restante da prova">
+                        <i class="fa-solid fa-hourglass-half"></i> <span id="final-timer-display">00:00</span>
+                    </div>
+
+                    <!-- Marcador de Tempo Nesta Questão -->
+                    <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-900/40 text-primary dark:text-indigo-300 px-3 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5" id="final-question-timer-badge" title="Tempo decorrido nesta questão">
+                        <i class="fa-solid fa-stopwatch text-indigo-500"></i> 
+                        <span class="text-[11px] font-sans font-semibold text-gray-500 dark:text-gray-400 hidden sm:inline">Nesta Questão:</span>
+                        <span id="final-quest-timer-display">00:00</span>
+                    </div>
+
+                    <!-- Bloco de Rascunho -->
+                    <button onclick="App.toggleRascunho()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-pencil"></i> <span class="hidden sm:inline">Rascunho</span>
+                    </button>
+
+                    <!-- Botão Entregar -->
+                    <button onclick="App.confirmarEntregaTesteFinal()" class="bg-secondary hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition">
+                        Finalizar e Entregar
+                    </button>
+                </div>
+            </header>
+
+            <!-- Corpo da Prova: Questão Ativa + Cartão Lateral -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Área Principal: Questão com Navegação -->
+                <div class="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col justify-between">
+                    <div id="final-single-question-container" class="max-w-3xl mx-auto w-full">
+                        <!-- Injetado dinamicamente pela questão ativa -->
+                    </div>
+
+                    <!-- Botões de Anterior / Próximo e Marcar para Revisar -->
+                    <div class="max-w-3xl mx-auto w-full pt-8 flex justify-between items-center border-t dark:border-gray-800">
+                        <button onclick="App.prevFinalQuestion()" id="btn-final-prev" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Anterior
+                        </button>
+
+                        <button onclick="App.toggleMarkReviewCurrent()" id="btn-final-review" class="text-xs font-bold px-4 py-2 rounded-xl border border-amber-400 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Marcar para Revisar
+                        </button>
+
+                        <button onclick="App.nextFinalQuestion()" id="btn-final-next" class="bg-primary hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center gap-2">
+                            Próxima <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel Lateral: Cartão de Respostas -->
+                <aside class="w-72 border-l dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 p-6 hidden lg:flex flex-col justify-between overflow-y-auto">
+                    <div>
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-gray-500 mb-4 flex items-center justify-between">
+                            <span>Cartão de Respostas</span>
+                            <span class="text-xs text-primary font-mono" id="final-card-progress">0/20</span>
+                        </h4>
+                        
+                        <!-- Legenda -->
+                        <div class="grid grid-cols-3 gap-1 text-[11px] text-gray-500 mb-4 pb-3 border-b dark:border-gray-700">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700 inline-block"></span> Vazia
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-primary inline-block"></span> Feita
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Revisar
+                            </div>
+                        </div>
+
+                        <!-- Grade de Botões de Questões -->
+                        <div class="grid grid-cols-5 gap-2" id="final-card-grid">
+                            <!-- Injetado por JS -->
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t dark:border-gray-700">
+                        <button onclick="App.confirmarEntregaTesteFinal()" class="w-full bg-secondary hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow transition">
+                            Entregar Exame
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- RELATÓRIO DIAGNÓSTICO DO TESTE FINAL -->
+        <section id="view-teste-final-resultado" class="view-section p-6 md:p-10 max-w-4xl mx-auto hidden">
+            <!-- Header do Resultado -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center mb-8">
+                <div class="inline-block p-4 rounded-3xl bg-primary/10 text-primary text-4xl mb-4">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h2 class="text-3xl font-black tracking-tight mb-1">Diagnóstico do Teste Final</h2>
+                <p class="text-gray-500 text-sm mb-6" id="final-report-date">Concluído hoje</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mb-6">
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border dark:border-gray-700">
+                        <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Nota Geral</span>
+                        <span class="text-3xl font-black text-primary" id="final-report-pct">0%</span>
+                        <span class="text-[11px] text-gray-400 block mt-1" id="final-report-raw">0 de 0 acertos</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50">
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-bold uppercase block mb-1">Nota TRI</span>
+                        <span class="text-3xl font-black text-amber-500" id="final-report-tri">0</span>
+                        <span class="text-[11px] text-amber-600/70 block mt-1">Escala ENEM</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border dark:border-gray-700">
+                        <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Tempo Total</span>
+                        <span class="text-2xl font-black text-gray-700 dark:text-gray-300" id="final-report-tempo">00:00</span>
+                        <span class="text-[11px] text-gray-400 block mt-1">Duração Prova</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50">
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase block mb-1">Média / Questão</span>
+                        <span class="text-2xl font-black text-primary" id="final-report-tempo-medio">00:00</span>
+                        <span class="text-[11px] text-gray-400 block mt-1" id="final-report-ritmo-badge">Ritmo Ideal</span>
+                    </div>
+                </div>
+
+                <div class="inline-block px-4 py-2 rounded-xl text-sm font-bold mb-4" id="final-report-badge">
+                    Nível Competitivo
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-300 max-w-xl mx-auto" id="final-report-veredito"></p>
+            </div>
+
+            <!-- Desempenho Segmentado por Disciplina -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-primary"></i> Desempenho por Grande Área
+                </h3>
+                <div class="space-y-4" id="final-report-materias">
+                    <!-- Barras de matérias injetadas por JS -->
+                </div>
+            </div>
+
+            <!-- Ação de Reforço Automático -->
+            <div id="final-reforco-card" class="bg-gradient-to-r from-rose-500 to-rose-600 text-white p-6 rounded-3xl shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h4 class="font-black text-lg mb-1"><i class="fa-solid fa-bolt"></i> Ciclo Fechado: Reforçar Lacunas</h4>
+                    <p class="text-xs text-rose-100" id="final-reforco-desc">Foram identificados tópicos com erro. Deseja adicioná-los como prioridade na sua rotina?</p>
+                </div>
+                <button onclick="App.agendarReforcoDoTesteFinal()" class="bg-white text-rose-600 font-bold px-5 py-3 rounded-xl text-sm shadow hover:bg-rose-50 transition whitespace-nowrap">
+                    Agendar Revisão Urgente
+                </button>
+            </div>
+
+            <!-- Gabarito Comentado Completo -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-500"></i> Gabarito Oficial e Resolução Comentada
+                </h3>
+                <div class="space-y-6" id="final-report-gabarito">
+                    <!-- Gabarito comentado injetado por JS -->
+                </div>
+            </div>
+
+            <div class="text-center pb-12">
+                <button onclick="App.navigate('dashboard')" class="bg-primary hover:bg-indigo-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition">
+                    Voltar ao Meu Dashboard
+                </button>
+            </div>
+        </section>
+
+        <!-- Desempenho & Estatísticas Gerais -->
+        <section id="view-stats" class="view-section p-6 md:p-10 max-w-5xl mx-auto hidden">
+            <h2 class="text-3xl font-black tracking-tight mb-6">Estatísticas Gerais</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Simulados Adaptativos</span>
+                    <p class="text-4xl font-black text-primary" id="stats-sim-total">0</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Média de Acertos</span>
+                    <p class="text-4xl font-black text-secondary"><span id="stats-sim-media">0</span>%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-2">Testes Finais Feitos</span>
+                    <p class="text-4xl font-black text-amber-500" id="stats-final-total">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-indigo-500"></i> Diagnóstico Contínuo da IA
+                </h3>
+                <ul id="recomenda-lista" class="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+                    <!-- Injetado por JS -->
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Pomodoro -->
+    <div id="pomodoro-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl text-center max-w-md w-full border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-1">
+                <h3 class="text-2xl font-black">Timer Pomodoro</h3>
+                <button onclick="App.closePomodoro()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 mb-5">Mantenha foco absoluto na sua meta de estudos</p>
+            
+            <div class="text-6xl font-black font-mono mb-6 text-rose-500" id="pom-display">25:00</div>
+
+            <!-- Ajustador de Tempo Pomodoro -->
+            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-2xl mb-6 border border-gray-100 dark:border-gray-700/60 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Ajustar Duração do Foco</label>
+                
+                <!-- Chips de tempos rápidos -->
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button type="button" onclick="App.setPomodoroMinutes(15)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="15">15 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(25)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-primary bg-primary/10 text-primary transition" data-min="25">25 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(30)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="30">30 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(45)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="45">45 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(50)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="50">50 min</button>
+                    <button type="button" onclick="App.setPomodoroMinutes(60)" class="pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition" data-min="60">60 min</button>
+                </div>
+
+                <!-- Campo de tempo livre personalizado -->
+                <div class="flex items-center gap-2 pt-2 border-t dark:border-gray-800">
+                    <span class="text-xs font-medium text-gray-500">Tempo livre:</span>
+                    <input type="number" id="pom-custom-input" min="1" max="180" value="25" placeholder="Min" class="w-20 p-2 text-xs font-bold text-center rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-primary">
+                    <span class="text-xs font-medium text-gray-400">minutos</span>
+                    <button type="button" onclick="App.applyCustomPomodoro()" class="bg-primary hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm ml-auto">
+                        Aplicar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controles do Pomodoro -->
+            <div class="flex justify-center gap-2">
+                <button onclick="App.startPomodoro()" class="bg-primary hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-1.5"><i class="fa-solid fa-play"></i> Iniciar</button>
+                <button onclick="App.pausePomodoro()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-1.5"><i class="fa-solid fa-pause"></i> Pausa</button>
+                <button onclick="App.resetPomodoro()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-1.5"><i class="fa-solid fa-rotate-left"></i> Resetar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rascunho do Exame -->
+    <div id="rascunho-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl max-w-lg w-full border border-gray-100 dark:border-gray-700 flex flex-col h-96">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-pencil text-amber-500"></i> Bloco de Rascunho</h3>
+                <button onclick="App.toggleRascunho()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">Utilize este espaço para cálculos e anotações. Salva automaticamente.</p>
+            <textarea id="rascunho-textarea" class="flex-1 w-full p-3 text-sm rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-900 font-mono resize-none outline-none focus:ring-2 focus:ring-primary" placeholder="Faça seus cálculos e anotações aqui..."></textarea>
+            <div class="flex justify-end mt-3">
+                <button onclick="App.toggleRascunho()" class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RECOMEÇAR OS ESTUDOS -->
+    <div id="modal-recomecar" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100 dark:border-gray-700 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/40 text-rose-500 text-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-2">Recomeçar os Estudos</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Escolha como deseja reiniciar sua jornada no StudyFlow:</p>
+
+            <div class="space-y-3 mb-6 text-left">
+                <!-- Opção 1: Reiniciar Apenas Conteúdos Estudados -->
+                <button onclick="App.executarReset(3)" class="w-full p-4 rounded-2xl border-2 border-emerald-300 dark:border-emerald-900/50 hover:border-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-rotate-left text-secondary text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm block">Reiniciar Conteúdos Estudados</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Volta todos os tópicos dominados para 'Pendente' para que você possa estudá-los novamente. Mantém seu XP e histórico.</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Opção 2: Reiniciar Toda a Trilha -->
+                <button onclick="App.executarReset(1)" class="w-full p-4 rounded-2xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-arrows-rotate text-primary text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm block">Reiniciar Toda a Trilha e Tarefas</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Mantém sua meta e horas diárias. Zera as tarefas e status dos tópicos para recomeçar o cronograma do dia 1.</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Opção 3: Reset de Fábrica -->
+                <button onclick="App.executarReset(2)" class="w-full p-4 rounded-2xl border-2 border-rose-300 dark:border-rose-900/50 hover:border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-trash-can text-rose-500 text-xl"></i>
+                        <div>
+                            <span class="font-bold text-sm text-rose-500 block">Reset Total de Fábrica</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Zera absolutamente tudo (perfil, XP, histórico de simulados e provas) e reabre o formulário de boas-vindas.</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <button onclick="App.fecharModalRecomecar()" class="w-full text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2">
+                Cancelar e Manter Meu Progresso
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts da Aplicação Modular -->
+    <script>
+// StudyFlow - Base de Dados Curricular e Banco de Questões Expandido
+const MOCK_MATERIAS = [
+    {
+        id: 'mat',
+        nome: 'Matemática e Suas Tecnologias',
+        cor: '#4F46E5',
+        icone: 'fa-calculator',
+        topicos: [
+            { id: 'mat_1', nome: 'Aritmética Básica, Razão e Porcentagem' },
+            { id: 'mat_2', nome: 'Funções de 1º e 2º Grau' },
+            { id: 'mat_3', nome: 'Geometria Plana (Áreas e Teorema de Pitágoras)' },
+            { id: 'mat_4', nome: 'Geometria Espacial (Volumes de Prismas e Cilindros)' },
+            { id: 'mat_5', nome: 'Estatística e Probabilidade' },
+            { id: 'mat_6', nome: 'Trigonometria e Triângulo Retângulo' },
+            { id: 'mat_7', nome: 'Análise Combinatória' }
+        ]
+    },
+    {
+        id: 'bio',
+        nome: 'Ciências da Natureza - Biologia',
+        cor: '#10B981',
+        icone: 'fa-dna',
+        topicos: [
+            { id: 'bio_1', nome: 'Ecologia: Cadeias Alimentares e Biomas' },
+            { id: 'bio_2', nome: 'Citologia: Organelas e Respiração Celular' },
+            { id: 'bio_3', nome: 'Genética: Leis de Mendel e Hereditariedade' },
+            { id: 'bio_4', nome: 'Fisiologia Humana: Circulatório e Imune' },
+            { id: 'bio_5', nome: 'Evolução e Seleção Natural de Darwin' }
+        ]
+    },
+    {
+        id: 'fis',
+        nome: 'Ciências da Natureza - Física',
+        cor: '#0ea5e9',
+        icone: 'fa-atom',
+        topicos: [
+            { id: 'fis_1', nome: 'Cinemática: Velocidade Média e MU/MUV' },
+            { id: 'fis_2', nome: 'Dinâmica: Leis de Newton e Força Peso' },
+            { id: 'fis_3', nome: 'Termologia: Calorimetria e Mudança de Estado' },
+            { id: 'fis_4', nome: 'Óptica Geométrica e Ondulatória' },
+            { id: 'fis_5', nome: 'Eletrodinâmica: Circuitos e Lei de Ohm' }
+        ]
+    },
+    {
+        id: 'qui',
+        nome: 'Ciências da Natureza - Química',
+        cor: '#f59e0b',
+        icone: 'fa-flask-vial',
+        topicos: [
+            { id: 'qui_1', nome: 'Modelos Atômicos e Tabela Periódica' },
+            { id: 'qui_2', nome: 'Funções Inorgânicas: Ácidos, Bases e Sais' },
+            { id: 'qui_3', nome: 'Estequiometria e Relações de Massa' },
+            { id: 'qui_4', nome: 'Termoquímica: Reações Endo e Exotérmicas' },
+            { id: 'qui_5', nome: 'Química Orgânica: Funções Oxigenadas' }
+        ]
+    },
+    {
+        id: 'his',
+        nome: 'Ciências Humanas - História',
+        cor: '#ec4899',
+        icone: 'fa-landmark',
+        topicos: [
+            { id: 'his_1', nome: 'Brasil Colônia: Ciclo do Ouro e Cana' },
+            { id: 'his_2', nome: 'Brasil República: Era Vargas e Ditadura Militar' },
+            { id: 'his_3', nome: 'Idade Contemporânea: Guerras Mundiais' },
+            { id: 'his_4', nome: 'Guerra Fria e Nova Ordem Mundial' }
+        ]
+    },
+    {
+        id: 'geo',
+        nome: 'Ciências Humanas - Geografia',
+        cor: '#8b5cf6',
+        icone: 'fa-earth-americas',
+        topicos: [
+            { id: 'geo_1', nome: 'Climatologia e Biomas Brasileiros' },
+            { id: 'geo_2', nome: 'Urbanização, Demografia e Migrações' },
+            { id: 'geo_3', nome: 'Globalização e Blocos Econômicos' },
+            { id: 'geo_4', nome: 'Agropecuária Brasileira e Meio Ambiente' }
+        ]
+    },
+    {
+        id: 'lin',
+        nome: 'Linguagens, Códigos e Literatura',
+        cor: '#14b8a6',
+        icone: 'fa-book-open-reader',
+        topicos: [
+            { id: 'lin_1', nome: 'Interpretação e Coesão Textual' },
+            { id: 'lin_2', nome: 'Figuras de Linguagem (Metáfora, Ironia)' },
+            { id: 'lin_3', nome: 'Modernismo Brasileiro e Vanguardas' },
+            { id: 'lin_4', nome: 'Variação Linguística e Norma Culta' }
+        ]
+    }
+];
+
+// Banco de Questões Robusto com Explicações Pedagógicas
+const MOCK_QUESTOES = [
+    // MATEMÁTICA
+    { 
+        id: 'q1', 
+        materia_id: 'mat',
+        topico_id: 'mat_1', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Aritmética Básica, Razão e Porcentagem',
+        texto: 'Uma mercadoria que custava R$ 200,00 sofreu um desconto de 15% em uma promoção e, no mês seguinte, sofreu um aumento de 10% sobre o novo valor. Qual é o preço final da mercadoria?', 
+        alternativas: ['R$ 180,00', 'R$ 187,00', 'R$ 190,00', 'R$ 195,50', 'R$ 200,00'], 
+        correta: 1,
+        explicacao: 'Com 15% de desconto: 200 * (1 - 0,15) = R$ 170,00. Em seguida, com 10% de aumento: 170 * 1,10 = R$ 187,00.'
+    },
+    { 
+        id: 'q2', 
+        materia_id: 'mat',
+        topico_id: 'mat_2', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Funções de 1º e 2º Grau',
+        texto: 'O lucro L(x) de uma fábrica é dado pela função quadrática L(x) = -2x² + 80x - 300, onde x representa a quantidade de peças produzidas em centenas. A quantidade x que maximiza o lucro é:', 
+        alternativas: ['15', '20', '25', '30', '40'], 
+        correta: 1,
+        explicacao: 'O vértice x_v da parábola maximiza a função: x_v = -b / (2a) = -80 / (2 * (-2)) = -80 / -4 = 20.'
+    },
+    { 
+        id: 'q3', 
+        materia_id: 'mat',
+        topico_id: 'mat_3', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Geometria Plana',
+        texto: 'Um terreno retangular tem perímetro de 60 metros. Sabendo que o comprimento é o dobro da largura, qual é a área desse terreno?', 
+        alternativas: ['150 m²', '200 m²', '225 m²', '250 m²', '300 m²'], 
+        correta: 1,
+        explicacao: 'Perímetro: 2(C + L) = 60 => C + L = 30. Como C = 2L, temos 2L + L = 30 => 3L = 30 => L = 10 m e C = 20 m. Área = C * L = 20 * 10 = 200 m².'
+    },
+    { 
+        id: 'q4', 
+        materia_id: 'mat',
+        topico_id: 'mat_4', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Geometria Espacial',
+        texto: 'Um reservatório de água possui formato cilíndrico reto com raio da base igual a 2 metros e altura de 3 metros. Considerando π ≈ 3,14, qual é o volume aproximado do reservatório em litros? (1 m³ = 1000 L)', 
+        alternativas: ['12.560 L', '25.120 L', '37.680 L', '42.000 L', '50.240 L'], 
+        correta: 2,
+        explicacao: 'Volume = π * r² * h = 3,14 * (2)² * 3 = 3,14 * 4 * 3 = 37,68 m³. Convertendo para litros: 37,68 * 1000 = 37.680 L.'
+    },
+    { 
+        id: 'q5', 
+        materia_id: 'mat',
+        topico_id: 'mat_5', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Estatística e Probabilidade',
+        texto: 'Em uma urna com 12 bolas brancas, 8 pretas e 5 vermelhas, qual é a probabilidade de se retirar aleatoriamente uma bola que NÃO seja branca?', 
+        alternativas: ['12/25 (48%)', '13/25 (52%)', '8/25 (32%)', '5/25 (20%)', '1/2 (50%)'], 
+        correta: 1,
+        explicacao: 'Total de bolas = 12 + 8 + 5 = 25. Bolas não brancas = 8 pretas + 5 vermelhas = 13. Probabilidade = 13/25 = 52%.'
+    },
+    { 
+        id: 'q6', 
+        materia_id: 'mat',
+        topico_id: 'mat_6', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Trigonometria e Triângulo Retângulo',
+        texto: 'Um observador vê o topo de um edifício sob um ângulo de elevação de 30°. Se ele está situado a 60 metros da base do prédio, qual a altura do edifício? (Considere tg 30° ≈ 0,58 e desconsidere a altura do observador).', 
+        alternativas: ['28,4 m', '34,8 m', '42,0 m', '51,9 m', '60,0 m'], 
+        correta: 1,
+        explicacao: 'tg(30°) = Altura / Distância => 0,58 = H / 60 => H = 60 * 0,58 = 34,8 metros.'
+    },
+    { 
+        id: 'q7', 
+        materia_id: 'mat',
+        topico_id: 'mat_7', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Análise Combinatória',
+        texto: 'Uma comissão de 3 estudantes deve ser escolhida a partir de um grupo de 7 candidatos disponíveis. De quantas maneiras diferentes essa comissão pode ser formada?', 
+        alternativas: ['21', '35', '42', '210', '343'], 
+        correta: 1,
+        explicacao: 'A ordem dos membros não importa, logo é uma Combinação simples: C(7,3) = 7! / (3! * 4!) = (7 * 6 * 5) / (3 * 2 * 1) = 35.'
+    },
+
+    // BIOLOGIA
+    { 
+        id: 'q8', 
+        materia_id: 'bio',
+        topico_id: 'bio_1', 
+        materia_nome: 'Biologia',
+        topico_nome: 'Ecologia: Cadeias Alimentares e Biomas',
+        texto: 'Em um ecossistema aquático poluído por metais pesados, em qual nível trófico da cadeia alimentar se observa a maior concentração dessas substâncias tóxicas?', 
+        alternativas: ['Produtores primários (fitoplâncton)', 'Consumidores primários (zooplâncton)', 'Consumidores secundários (peixes pequenos)', 'Consumidores de topo da cadeia (aves ou peixes carnívoros)', 'Decompositores bacterianos'], 
+        correta: 3,
+        explicacao: 'Trata-se do fenômeno da Bioacumulação ou Biomagnificação trófica: poluentes não biodegradáveis acumulam-se progressivamente ao longo dos níveis tróficos, atingindo sua máxima concentração no topo da cadeia.'
+    },
+    { 
+        id: 'q9', 
+        materia_id: 'bio',
+        topico_id: 'bio_2', 
+        materia_nome: 'Biologia',
+        topico_nome: 'Citologia: Organelas e Respiração Celular',
+        texto: 'Durante exercícios físicos intensos em que o suprimento de oxigênio muscular é insuficiente, as células musculares obtêm energia temporária por meio de:', 
+        alternativas: ['Ciclo de Krebs acelerado', 'Fermentação lática no citosol', 'Fosforilação oxidativa mitocondrial', 'Fermentação alcoólica no retículo', 'Síntese de amido nos lisossomos'], 
+        correta: 1,
+        explicacao: 'Na ausência momentânea de O₂ (hipóxia muscular), a glicólise é mantida por meio da fermentação lática citoplasmática, gerando ácido lático e 2 ATPs por glicose.'
+    },
+    { 
+        id: 'q10', 
+        materia_id: 'bio',
+        topico_id: 'bio_3', 
+        materia_nome: 'Biologia',
+        topico_nome: 'Genética: Leis de Mendel',
+        texto: 'No cruzamento entre duas cobaias heterozigotas para a cor do pelo (Bb x Bb), onde o alelo B (preto) é dominante sobre b (branco), qual é a probabilidade esperada de nascer um filhote com fenótipo branco?', 
+        alternativas: ['0%', '25%', '50%', '75%', '100%'], 
+        correta: 1,
+        explicacao: 'O cruzamento Bb x Bb gera 1 BB, 2 Bb e 1 bb. O fenótipo branco exige homozigose recessiva (bb), que corresponde a 1 em 4 (25%).'
+    },
+    { 
+        id: 'q11', 
+        materia_id: 'bio',
+        topico_id: 'bio_4', 
+        materia_nome: 'Biologia',
+        topico_nome: 'Fisiologia Humana',
+        texto: 'As vacinas e os soros terapêuticos diferem fundamentalmente quanto ao seu mecanismo de ação. As vacinas atuam fornecendo:', 
+        alternativas: ['Anticorpos prontos gerando imunização passiva e temporária', 'Antígenos atenuados/inativados estimulando a produção ativa de anticorpos e memória imunológica', 'Hormônios estimuladores da medula óssea', 'Antibióticos de largo espectro contra vírus e bactérias', 'Leucócitos maduros para neutralização imediata'], 
+        correta: 1,
+        explicacao: 'A vacina é uma imunização ativa: contém antígenos que estimulam o próprio organismo a produzir anticorpos específicos e células de memória de longa duração.'
+    },
+    { 
+        id: 'q12', 
+        materia_id: 'bio',
+        topico_id: 'bio_5', 
+        materia_nome: 'Biologia',
+        topico_nome: 'Evolução e Seleção Natural',
+        texto: 'O aparecimento de bactérias resistentes a múltiplos antibióticos é um exemplo contemporâneo clássico de:', 
+        alternativas: ['Uso e desuso proposto por Lamarck', 'Seleção natural atuando sobre a variabilidade genética pré-existente', 'Geração espontânea de novas espécies', 'Deriva genética direcionada pelo paciente', 'Mutações intencionais induzidas pelo remédio'], 
+        correta: 1,
+        explicacao: 'O antibiótico atua como agente seletivo ambiental: ele elimina as bactérias sensíveis, permitindo que as previamente portadoras de mutações de resistência sobrevivam e se proliferem (Seleção Natural Darwiniana).'
+    },
+
+    // FÍSICA
+    { 
+        id: 'q13', 
+        materia_id: 'fis',
+        topico_id: 'fis_1', 
+        materia_nome: 'Física',
+        topico_nome: 'Cinemática: Velocidade Média e MU/MUV',
+        texto: 'Um veículo parte do repouso e atinge uma velocidade de 72 km/h em 10 segundos, com aceleração escalar constante. Qual foi a distância percorrida pelo veículo nesse intervalo de tempo?', 
+        alternativas: ['50 m', '100 m', '150 m', '200 m', '360 m'], 
+        correta: 1,
+        explicacao: 'Convertendo a velocidade: 72 km/h / 3,6 = 20 m/s. Aceleração a = (20 - 0) / 10 = 2 m/s². Distância Δs = v₀*t + (a*t²)/2 = 0 + (2 * 10²)/2 = 100 metros.'
+    },
+    { 
+        id: 'q14', 
+        materia_id: 'fis',
+        topico_id: 'fis_2', 
+        materia_nome: 'Física',
+        topico_nome: 'Dinâmica: Leis de Newton',
+        texto: 'Um bloco de massa m = 5 kg repousa sobre uma superfície horizontal perfeitamente lisa. Aplica-se sobre ele uma força horizontal constante F = 15 N. A aceleração adquirida pelo bloco e a força de reação da mesa (Normal) valem (considere g = 10 m/s²):', 
+        alternativas: ['a = 2 m/s² e N = 15 N', 'a = 3 m/s² e N = 50 N', 'a = 3 m/s² e N = 15 N', 'a = 5 m/s² e N = 50 N', 'a = 15 m/s² e N = 0 N'], 
+        correta: 1,
+        explicacao: 'Pela 2ª Lei de Newton: F = m*a => 15 = 5*a => a = 3 m/s². No eixo vertical em equilíbrio: Normal = Peso = m*g = 5 * 10 = 50 N.'
+    },
+    { 
+        id: 'q15', 
+        materia_id: 'fis',
+        topico_id: 'fis_3', 
+        materia_nome: 'Física',
+        topico_nome: 'Termologia: Calorimetria',
+        texto: 'Quantas calorias de calor sensível são necessárias para aquecer 200 g de água pura de 20 °C até 70 °C? (Dado: calor específico da água c = 1,0 cal/g·°C).', 
+        alternativas: ['5.000 cal', '10.000 cal', '14.000 cal', '20.000 cal', '25.000 cal'], 
+        correta: 1,
+        explicacao: 'Equação fundamental da calorimetria: Q = m * c * ΔT = 200 * 1,0 * (70 - 20) = 200 * 50 = 10.000 calorias (10 kcal).'
+    },
+    { 
+        id: 'q16', 
+        materia_id: 'fis',
+        topico_id: 'fis_4', 
+        materia_nome: 'Física',
+        topico_nome: 'Óptica Geométrica e Ondulatória',
+        texto: 'Quando a luz solar atravessa uma gota de chuva e se decompõe nas cores do arco-íris, o fenômeno ondulatório primário responsável por desviar diferentemente cada frequência de onda é a:', 
+        alternativas: ['Difração', 'Interferência', 'Refração com dispersão', 'Polarização', 'Ressonância'], 
+        correta: 2,
+        explicacao: 'A refração ocorre quando a onda luminosa muda de meio e de velocidade. Como o índice de refração depende da frequência da luz, cada cor sofre um desvio angular diferente (dispersão refrativa).'
+    },
+    { 
+        id: 'q17', 
+        materia_id: 'fis',
+        topico_id: 'fis_5', 
+        materia_nome: 'Física',
+        topico_nome: 'Eletrodinâmica: Circuitos e Lei de Ohm',
+        texto: 'Um chuveiro elétrico opera sob uma ddp de 220 V consumindo uma potência de 4400 W. A corrente elétrica que percorre a resistência e o valor da resistência do chuveiro valem, respectivamente:', 
+        alternativas: ['10 A e 22 Ω', '20 A e 11 Ω', '20 A e 22 Ω', '40 A e 5,5 Ω', '15 A e 15 Ω'], 
+        correta: 1,
+        explicacao: 'P = U * i => 4400 = 220 * i => i = 20 A. Pela 1ª Lei de Ohm: U = R * i => 220 = R * 20 => R = 11 Ω.'
+    },
+
+    // QUÍMICA
+    { 
+        id: 'q18', 
+        materia_id: 'qui',
+        topico_id: 'qui_1', 
+        materia_nome: 'Química',
+        topico_nome: 'Modelos Atômicos e Tabela Periódica',
+        texto: 'O modelo atômico que propôs pela primeira vez a quantização da energia dos elétrons em órbitas circulares estacionárias definidas foi formulado por:', 
+        alternativas: ['John Dalton', 'J.J. Thomson', 'Ernest Rutherford', 'Niels Bohr', 'James Chadwick'], 
+        correta: 3,
+        explicacao: 'Niels Bohr introduziu os postulados quânticos na estrutura atômica, explicando que os elétrons giram em órbitas quantizadas sem irradiar energia enquanto estacionários.'
+    },
+    { 
+        id: 'q19', 
+        materia_id: 'qui',
+        topico_id: 'qui_2', 
+        materia_nome: 'Química',
+        topico_nome: 'Funções Inorgânicas',
+        texto: 'A queima de combustíveis fósseis contendo enxofre libera SO₂ e SO₃ na atmosfera, que em contato com o vapor de água originam a chuva ácida através da formação de:', 
+        alternativas: ['Hidróxido de sódio (NaOH)', 'Ácido sulfúrico (H₂SO₄)', 'Gás metano (CH₄)', 'Bicarbonato de cálcio', 'Cloreto de hidrogênio (HCl)'], 
+        correta: 1,
+        explicacao: 'Os óxidos de enxofre são óxidos ácidos: SO₃ + H₂O → H₂SO₄ (ácido sulfúrico), um dos principais agentes causadores da acidificação das chuvas.'
+    },
+    { 
+        id: 'q20', 
+        materia_id: 'qui',
+        topico_id: 'qui_3', 
+        materia_nome: 'Química',
+        topico_nome: 'Estequiometria e Relações de Massa',
+        texto: 'Dada a reação balanceada de combustão completa do metano: CH₄ + 2 O₂ → CO₂ + 2 H₂O. Quantos gramas de CO₂ são formados a partir da queima completa de 32 g de metano (CH₄)? (Massas molares: C=12, H=1, O=16 g/mol).', 
+        alternativas: ['44 g', '88 g', '132 g', '176 g', '220 g'], 
+        correta: 1,
+        explicacao: 'Massa molar do CH₄ = 12 + 4 = 16 g/mol. 32 g de CH₄ correspondem a 2 mols. Como a proporção molar CH₄ : CO₂ é 1:1, formam-se 2 mols de CO₂. Massa de 2 mols de CO₂ = 2 * 44 = 88 g.'
+    },
+    { 
+        id: 'q21', 
+        materia_id: 'qui',
+        topico_id: 'qui_4', 
+        materia_nome: 'Química',
+        topico_nome: 'Termoquímica',
+        texto: 'Em um processo químico onde a entalpia final dos produtos é menor do que a entalpia inicial dos reagentes (ΔH < 0), dizemos que o processo é:', 
+        alternativas: ['Endotérmico com absorção líquida de calor', 'Exotérmico com liberação de calor para a vizinhança', 'Isotérmico sem alteração de entalpia', 'Atermal com quebra forçada de ligações', 'Adiabático irreversível'], 
+        correta: 1,
+        explicacao: 'Quando ΔH = H_produtos - H_reagentes < 0, o sistema perdeu energia na forma de calor para o meio ambiente, caracterizando uma reação exotérmica.'
+    },
+    { 
+        id: 'q22', 
+        materia_id: 'qui',
+        topico_id: 'qui_5', 
+        materia_nome: 'Química',
+        topico_nome: 'Química Orgânica',
+        texto: 'Compostos que contêm o grupo funcional hidroxila (-OH) ligado diretamente a um anel benzênico aromático pertencem à função orgânica denominada:', 
+        alternativas: ['Álcool', 'Fenol', 'Aldeído', 'Éter', 'Éster'], 
+        correta: 1,
+        explicacao: 'Quando o grupo hidroxila (-OH) está ligado a carbono saturado, temos um álcool; quando ligado diretamente ao anel benzênico aromático, a função é fenol.'
+    },
+
+    // HISTÓRIA
+    { 
+        id: 'q23', 
+        materia_id: 'his',
+        topico_id: 'his_1', 
+        materia_nome: 'História',
+        topico_nome: 'Brasil Colônia',
+        texto: 'O sistema de plantation implantado no nordeste açucareiro colonial português baseava-se no tripé socioeconômico constituído por:', 
+        alternativas: ['Minifúndio, mão de obra assalariada e policultura interna', 'Latifúndio monocultor, trabalho escravo e produção voltada para exportação', 'Pequenas propriedades familiares comunitárias e livre comércio', 'Propriedades fabris urbanas e escravismo apenas doméstico', 'Feudos cooperativos subordinados aos jesuítas'], 
+        correta: 1,
+        explicacao: 'A economia colonial açucareira mercantilista organizava-se em latifúndios monocultores voltados à metrópole europeia, sustentados pela exploração do trabalho escravo africano e indígena.'
+    },
+    { 
+        id: 'q24', 
+        materia_id: 'his',
+        topico_id: 'his_2', 
+        materia_nome: 'História',
+        topico_nome: 'Brasil República: Era Vargas',
+        texto: 'A Consolidação das Leis do Trabalho (CLT), a fundação da Companhia Siderúrgica Nacional (CSN) e a criação da Vale do Rio Doce foram marcos modernizadores de qual período político brasileiro?', 
+        alternativas: ['República Oligárquica do Café com Leite', 'Era Vargas (1930 - 1945)', 'Governo Juscelino Kubitschek (50 anos em 5)', 'Regência Trina', 'República da Espada'], 
+        correta: 1,
+        explicacao: 'Getúlio Vargas liderou uma intensa política nacional-desenvolvimentista de industrialização de base (CSN, Vale) e regulação das relações de trabalho (criação da CLT em 1943).'
+    },
+    { 
+        id: 'q25', 
+        materia_id: 'his',
+        topico_id: 'his_3', 
+        materia_nome: 'História',
+        topico_nome: 'Idade Contemporânea: Guerras Mundiais',
+        texto: 'O Tratado de Versalhes (1919), assinado após o término da Primeira Guerra Mundial, é historicamente apontado por cientistas políticos e historiadores como:', 
+        alternativas: ['Um pacto que consolidou a paz duradoura na Europa central', 'Uma imposição humilhante que gerou ressentimento alemão e alimentou a ascensão do nazifascismo', 'Um acordo que extinguiu o colonialismo no continente africano', 'A dissolução pacífica do Império Britânico', 'Uma união militar de proteção aos trabalhadores soviéticos'], 
+        correta: 1,
+        explicacao: 'As cláusulas punitivas drásticas impostas à Alemanha em Versalhes (perda territorial, indenizações astronômicas e desarme) causaram colapso econômico e revanchismo explorado pelo Partido Nazista.'
+    },
+    { 
+        id: 'q26', 
+        materia_id: 'his',
+        topico_id: 'his_4', 
+        materia_nome: 'História',
+        topico_nome: 'Guerra Fria',
+        texto: 'A Guerra Fria caracterizou-se pela disputa geopolítica bipolar entre EUA e URSS. Qual evento em 1962 representou o momento mais agudo de tensão nuclear entre as duas superpotências?', 
+        alternativas: ['A construção do Muro de Berlim', 'A Guerra da Crimeia', 'A Crise dos Mísseis em Cuba', 'A Queda do Muro de Berlim', 'A assinatura da Doutrina Truman'], 
+        correta: 2,
+        explicacao: 'Em outubro de 1962, a descoberta de mísseis balísticos nucleares soviéticos em Cuba quase deflagrou uma guerra atômica direta entre Kennedy e Kruschev.'
+    },
+
+    // GEOGRAFIA
+    { 
+        id: 'q27', 
+        materia_id: 'geo',
+        topico_id: 'geo_1', 
+        materia_nome: 'Geografia',
+        topico_nome: 'Climatologia e Biomas Brasileiros',
+        texto: 'O bioma brasileiro considerado a "caixa d\'água do Brasil" devido à nascente de importantes bacias hidrográficas, que possui vegetação com troncos retorcidos, casca grossa e solo ácido é o:', 
+        alternativas: ['Pampa', 'Mata Atlântica', 'Cerrado', 'Caatinga', 'Pantanal'], 
+        correta: 2,
+        explicacao: 'O Cerrado é o hotspot com papel estratégico na recarga dos aquíferos Guarani e Urucuia e nascentes das bacias do São Francisco, Paraná e Tocantins.'
+    },
+    { 
+        id: 'q28', 
+        materia_id: 'geo',
+        topico_id: 'geo_2', 
+        materia_nome: 'Geografia',
+        topico_nome: 'Urbanização e Demografia',
+        texto: 'O fenômeno urbano caracterizado pela confluência física e espacial entre duas ou mais cidades vizinhas, formando uma única mancha urbana contínua, denomina-se:', 
+        alternativas: ['Gentrificação', 'Desmetropolização', 'Conurbação', 'Segregação socioespacial', 'Macrocefalia agrária'], 
+        correta: 2,
+        explicacao: 'Conurbação é o encontro das malhas urbanas de municípios limítrofes, decorrente do rápido crescimento horizontal das cidades.'
+    },
+    { 
+        id: 'q29', 
+        materia_id: 'geo',
+        topico_id: 'geo_3', 
+        materia_nome: 'Geografia',
+        topico_nome: 'Globalização e Blocos Econômicos',
+        texto: 'O Mercosul (Mercado Comum do Sul) classifica-se formalmente em qual estágio de integração econômica?', 
+        alternativas: ['Zona de Livre Comércio apenas', 'União Aduaneira incompleta (com TEC - Tarifa Externa Comum)', 'União Econômica e Monetária com moeda única', 'Área de Preferência Tarifária simples', 'Integração Política Total'], 
+        correta: 1,
+        explicacao: 'O Mercosul avançou além da zona de livre comércio adotando uma Tarifa Externa Comum (TEC), caracterizando-se como união aduaneira, embora ainda com exceções comerciais.'
+    },
+    { 
+        id: 'q30', 
+        materia_id: 'geo',
+        topico_id: 'geo_4', 
+        materia_nome: 'Geografia',
+        topico_nome: 'Agropecuária Brasileira',
+        texto: 'A expansão da fronteira agrícola moderna no Brasil tem avançado historicamente sobre qual região geográfica estratégica, conhecida pela sigla MATOPIBA?', 
+        alternativas: ['Maranhão, Tocantins, Piauí e Bahia', 'Mato Grosso, Paraná, Rio de Janeiro e Bahia', 'Minas Gerais, Acre, Tocantins e Paraíba', 'Maranhão, Amazonas, Rondônia e Amapá', 'Mato Grosso do Sul, Pelotas, Iguaçu e Bahia'], 
+        correta: 0,
+        explicacao: 'MATOPIBA é o acrônimo da fronteira agrícola de alta produtividade de grãos (soja e milho) nos estados do Maranhão, Tocantins, Piauí e Bahia.'
+    },
+
+    // LINGUAGENS E LITERATURA
+    { 
+        id: 'q31', 
+        materia_id: 'lin',
+        topico_id: 'lin_1', 
+        materia_nome: 'Linguagens',
+        topico_nome: 'Interpretação e Coesão Textual',
+        texto: 'No trecho: "O aluno estudou com dedicação intensa; PORTANTO, obteve excelente classificação", o conectivo destacado introduz uma oração com valor semântico de:', 
+        alternativas: ['Concessão', 'Condição', 'Conclusão', 'Causa', 'Oposição'], 
+        correta: 2,
+        explicacao: 'A conjunção coordenativa "portanto" indica consequência lógica ou conclusão de um fato anteriormente exposto.'
+    },
+    { 
+        id: 'q32', 
+        materia_id: 'lin',
+        topico_id: 'lin_2', 
+        materia_nome: 'Linguagens',
+        topico_nome: 'Figuras de Linguagem',
+        texto: 'Identifique a figura de linguagem presente na frase: "A cidade acordou assustada com o estrondo do trovão que rugia no céu escuro."', 
+        alternativas: ['Hipérbole e Pleonasmo', 'Personificação (Prosopopeia)', 'Eufemismo', 'Sinestesia pura', 'Antítese sem metáfora'], 
+        correta: 1,
+        explicacao: 'A personificação ou prosopopeia atribui ações e sentimentos humanos a seres inanimados ("a cidade acordou", "o trovão rugia").'
+    },
+    { 
+        id: 'q33', 
+        materia_id: 'lin',
+        topico_id: 'lin_3', 
+        materia_nome: 'Linguagens',
+        topico_nome: 'Modernismo Brasileiro',
+        texto: 'A Semana de Arte Moderna de 1922, realizada no Teatro Municipal de São Paulo, teve como principal objetivo estético e ideológico:', 
+        alternativas: ['Resgatar rigorosamente as formas parnasianas de rima e métrica', 'Rompimento com o academicismo e valorização de uma identidade e cultura autenticamente brasileiras', 'Imitação estrita dos modelos literários clássicos portugueses', 'Rejeição de qualquer manifestação artística moderna internacional', 'Valorização da literatura barroca sacra'], 
+        correta: 1,
+        explicacao: 'O Modernismo de 1922 propôs a antropofagia cultural: deglutir as vanguardas europeias e criar uma arte livre do academicismo e genuinamente nacional.'
+    },
+    { 
+        id: 'q34', 
+        materia_id: 'lin',
+        topico_id: 'lin_4', 
+        materia_nome: 'Linguagens',
+        topico_nome: 'Variação Linguística',
+        texto: 'Sob o ponto de vista da sociolinguística moderna, as variedades linguísticas regionais e coloquiais devem ser compreendidas como:', 
+        alternativas: ['Erros gramaticais graves que devem ser banidos da sociedade', 'Manifestações legítimas da língua condicionadas por fatores geográficos, históricos e sociais', 'Formas inferiores e deficientes de comunicação', 'Desvios provocados unicamente pelo analfabetismo', 'Apenas gírias passageiras sem relevância cultural'], 
+        correta: 1,
+        explicacao: 'A linguística compreende que não há variação superior ou inferior; todas as variedades linguísticas possuem estrutura coerente e cumprem seu papel comunicativo e identitário social.'
+    },
+    { 
+        id: 'q35', 
+        materia_id: 'mat',
+        topico_id: 'mat_1', 
+        materia_nome: 'Matemática',
+        topico_nome: 'Aritmética Básica, Razão e Porcentagem',
+        texto: 'Em um mapa cartográfico desenhado na escala 1 : 250.000, a distância linear medida entre duas cidades é de 6 cm. A distância real entre essas cidades em quilômetros é:', 
+        alternativas: ['15 km', '25 km', '150 km', '250 km', '1.500 km'], 
+        correta: 0,
+        explicacao: 'Distância real = 6 cm * 250.000 = 1.500.000 cm. Convertendo para metros: 1.500.000 / 100 = 15.000 m. Convertendo para km: 15.000 / 1.000 = 15 km.'
+    }
+];
+
+const Store = {
+    init() {
+        const perfil = this.get('perfil');
+        const materiasArmazenadas = this.get('materias');
+
+        // Se não tiver perfil ou se as matérias estiverem desatualizadas (menos de 7 matérias), re-sincroniza com MOCK_MATERIAS
+        if (!perfil) {
+            this.clearAll();
+            localStorage.setItem('studyflow_perfil', JSON.stringify({
+                objetivo: null,
+                dataProva: null,
+                horasPorDia: 0,
+                xp: 0,
+                streak: 0,
+                nivel: 1,
+                lastLogin: new Date().toISOString().split('T')[0]
+            }));
+            
+            const materiasComStatus = MOCK_MATERIAS.map(m => ({
+                ...m,
+                topicos: m.topicos.map(t => ({ ...t, status: 'pendente' }))
+            }));
+            localStorage.setItem('studyflow_materias', JSON.stringify(materiasComStatus));
+            localStorage.setItem('studyflow_tarefas', JSON.stringify([]));
+            localStorage.setItem('studyflow_simulados', JSON.stringify([]));
+            localStorage.setItem('studyflow_testes_finais', JSON.stringify([]));
+        } else if (!materiasArmazenadas || materiasArmazenadas.length < MOCK_MATERIAS.length) {
+            // Migração suave: atualiza lista de matérias preservando tópicos já estudados
+            const statusMap = {};
+            if (materiasArmazenadas) {
+                materiasArmazenadas.forEach(m => {
+                    m.topicos.forEach(t => {
+                        statusMap[t.id] = t.status;
+                    });
+                });
+            }
+
+            const novasMaterias = MOCK_MATERIAS.map(m => ({
+                ...m,
+                topicos: m.topicos.map(t => ({
+                    ...t,
+                    status: statusMap[t.id] || 'pendente'
+                }))
+            }));
+            localStorage.setItem('studyflow_materias', JSON.stringify(novasMaterias));
+            if (!this.get('testes_finais')) {
+                localStorage.setItem('studyflow_testes_finais', JSON.stringify([]));
+            }
+        }
+
+        this.checkStreak();
+    },
+
+    get(key) { 
+        try {
+            return JSON.parse(localStorage.getItem(`studyflow_${key}`)); 
+        } catch(e) {
+            return null;
+        }
+    },
+
+    set(key, data) { 
+        localStorage.setItem(`studyflow_${key}`, JSON.stringify(data)); 
+    },
+
+    clearAll() {
+        localStorage.removeItem('studyflow_perfil');
+        localStorage.removeItem('studyflow_materias');
+        localStorage.removeItem('studyflow_tarefas');
+        localStorage.removeItem('studyflow_simulados');
+        localStorage.removeItem('studyflow_testes_finais');
+        localStorage.removeItem('studyflow_rascunho');
+    },
+
+    // Reset 1: Recomeçar Apenas o Progresso dos Estudos (mantém objetivo/horas)
+    resetProgressOnly() {
+        const perfil = this.get('perfil') || {};
+        // Zera tópicos
+        const materiasComStatus = MOCK_MATERIAS.map(m => ({
+            ...m,
+            topicos: m.topicos.map(t => ({ ...t, status: 'pendente' }))
+        }));
+        this.set('materias', materiasComStatus);
+        this.set('tarefas', []);
+        this.set('simulados', []);
+        
+        // Zera streak e reinicia XP com bônus de recomeço
+        perfil.streak = 0;
+        perfil.xp = 0;
+        perfil.nivel = 1;
+        this.set('perfil', perfil);
+
+        // Re-gera cronograma limpo
+        Algorithms.generateSchedule();
+    },
+
+    // Reinicia apenas todos os conteúdos que já foram estudados
+    resetAllConteudosEstudados() {
+        const materias = this.get('materias') || [];
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                t.status = 'pendente';
+            });
+        });
+        this.set('materias', materias);
+        this.set('tarefas', []);
+        Algorithms.generateSchedule();
+    },
+
+    // Reinicia estudos e toda a rotina de testes (simulados e testes finais)
+    resetEstudosERotinaTestes() {
+        const materias = this.get('materias') || [];
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                t.status = 'pendente';
+            });
+        });
+        this.set('materias', materias);
+        this.set('tarefas', []);
+        this.set('simulados', []);
+        this.set('testes_finais', []);
+        Algorithms.generateSchedule();
+    },
+
+    // Reinicia os conteúdos estudados de uma disciplina específica
+    resetMateriaConteudos(materiaId) {
+        const materias = this.get('materias') || [];
+        let alterou = false;
+        materias.forEach(m => {
+            if (m.id === materiaId) {
+                m.topicos.forEach(t => {
+                    t.status = 'pendente';
+                });
+                alterou = true;
+            }
+        });
+        if (alterou) {
+            this.set('materias', materias);
+            Algorithms.generateSchedule();
+        }
+    },
+
+    // Reinicia um tópico individual específico
+    resetTopicoIndividual(topicoId) {
+        const materias = this.get('materias') || [];
+        let alterou = false;
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                if (t.id === topicoId) {
+                    t.status = 'pendente';
+                    alterou = true;
+                }
+            });
+        });
+        if (alterou) {
+            this.set('materias', materias);
+            Algorithms.generateSchedule();
+        }
+    },
+
+    // Reset 2: Reset Completo de Fábrica (Zerar Tudo e ir ao Onboarding)
+    resetAllFactory() {
+        this.clearAll();
+        this.init();
+    },
+
+    updatePerfil(dados) {
+        const perfil = this.get('perfil') || {};
+        this.set('perfil', { ...perfil, ...dados });
+    },
+
+    addXP(amount) {
+        const perfil = this.get('perfil') || { xp: 0, nivel: 1 };
+        perfil.xp = (perfil.xp || 0) + amount;
+        perfil.nivel = Math.floor(perfil.xp / 100) + 1;
+        this.set('perfil', perfil);
+    },
+
+    incrementStreak() {
+        const perfil = this.get('perfil');
+        if (!perfil) return;
+        perfil.streak = (perfil.streak || 0) + 1;
+        this.set('perfil', perfil);
+    },
+
+    checkStreak() {
+        const perfil = this.get('perfil');
+        if (!perfil || !perfil.lastLogin) return;
+        const today = new Date().toISOString().split('T')[0];
+        if (perfil.lastLogin !== today) {
+            const lastDate = new Date(perfil.lastLogin);
+            const currentDate = new Date(today);
+            const diffTime = Math.abs(currentDate - lastDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (diffDays > 1) {
+                perfil.streak = 0;
+            }
+            perfil.lastLogin = today;
+            this.set('perfil', perfil);
+        }
+    },
+
+    saveFinalTest(resultado) {
+        const testes = this.get('testes_finais') || [];
+        testes.push(resultado);
+        this.set('testes_finais', testes);
+        this.addXP(250); // Bônus especial de XP por finalizar o Teste Final
+    },
+
+    saveRascunho(texto) {
+        localStorage.setItem('studyflow_rascunho', texto);
+    },
+
+    getRascunho() {
+        return localStorage.getItem('studyflow_rascunho') || '';
+    }
+};
+
+const Algorithms = {
+    // Algoritmo 1: Gerador de Cronograma Inteligente
+    generateSchedule() {
+        const perfil = Store.get('perfil');
+        if (!perfil || !perfil.objetivo) return;
+
+        const materias = Store.get('materias') || [];
+        let tarefas = Store.get('tarefas') || [];
+        
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Mantém apenas tarefas passadas que já foram concluídas
+        tarefas = tarefas.filter(t => t.dataStr < today && t.status === 'concluida');
+
+        let topicosPendentes = [];
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                if (t.status === 'pendente' || t.status === 'revisao_agendada') {
+                    topicosPendentes.push({ 
+                        materiaId: m.id, 
+                        materiaNome: m.nome, 
+                        topicoId: t.id, 
+                        topicoNome: t.nome, 
+                        prioridade: t.status === 'revisao_agendada' ? 2 : 1 
+                    });
+                }
+            });
+        });
+
+        // Ordenar: revisões urgentes primeiro
+        topicosPendentes.sort((a, b) => b.prioridade - a.prioridade);
+
+        if (topicosPendentes.length === 0) {
+            Store.set('tarefas', tarefas);
+            return;
+        }
+
+        const startDate = new Date();
+        let endDate = perfil.dataProva ? new Date(perfil.dataProva) : null;
+        
+        // Se a data da prova for inválida ou anterior a hoje, projeta 45 dias
+        if (!endDate || isNaN(endDate.getTime()) || endDate <= startDate) {
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 45);
+        }
+        
+        let currentDate = new Date();
+        let topicoIndex = 0;
+        
+        const tempoPorTopico = 50; // 50 min por tópico
+        const horasConfiguradas = perfil.horasPorDia || 3;
+        const topicosPorDia = Math.max(1, Math.floor((horasConfiguradas * 60) / tempoPorTopico));
+
+        while (topicoIndex < topicosPendentes.length && currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            
+            for (let i = 0; i < topicosPorDia && topicoIndex < topicosPendentes.length; i++) {
+                const topico = topicosPendentes[topicoIndex];
+                tarefas.push({
+                    id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+                    topico_id: topico.topicoId,
+                    materia_nome: topico.materiaNome,
+                    topico_nome: topico.topicoNome,
+                    tipo: topico.prioridade === 2 ? 'REVISÃO URGENTE (Reforço)' : 'Teoria + Exercícios',
+                    duracaoMinutos: tempoPorTopico,
+                    dataStr: dateStr,
+                    status: 'pendente'
+                });
+                topicoIndex++;
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        Store.set('tarefas', tarefas);
+    },
+
+    // Algoritmo 2: Filtro de Simulado Adaptativo (apenas tópicos concluídos)
+    generateSimulado(qtdQuestoes = 10) {
+        const materias = Store.get('materias') || [];
+        const topicosEstudados = new Set();
+        
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                if (t.status === 'estudado') {
+                    topicosEstudados.add(t.id);
+                }
+            });
+        });
+
+        // Seleciona questões APENAS de tópicos estudados
+        let questoesElegiveis = MOCK_QUESTOES.filter(q => topicosEstudados.has(q.topico_id));
+        
+        // Embaralha e seleciona a quantidade solicitada
+        questoesElegiveis = questoesElegiveis.sort(() => 0.5 - Math.random()).slice(0, qtdQuestoes);
+        return questoesElegiveis;
+    },
+
+    // Algoritmo 3: Processador de Resultados e Ciclo de Feedback (Simulado Adaptativo)
+    processSimuladoResult(respostas, questoesSimulado) {
+        let acertos = 0;
+        const estatisticasPorTopico = {};
+
+        questoesSimulado.forEach((q, index) => {
+            const acertou = respostas[index] === q.correta;
+            if (acertou) acertos++;
+            
+            if (!estatisticasPorTopico[q.topico_id]) {
+                estatisticasPorTopico[q.topico_id] = { total: 0, acertos: 0 };
+            }
+            estatisticasPorTopico[q.topico_id].total++;
+            if (acertou) estatisticasPorTopico[q.topico_id].acertos++;
+        });
+
+        const nota = questoesSimulado.length > 0 ? Math.round((acertos / questoesSimulado.length) * 100) : 0;
+        
+        const novoSimulado = {
+            id: 'sim_' + Date.now(),
+            data: new Date().toISOString().split('T')[0],
+            nota: nota,
+            questoes_total: questoesSimulado.length,
+            acertos: acertos
+        };
+
+        const simulados = Store.get('simulados') || [];
+        simulados.push(novoSimulado);
+        Store.set('simulados', simulados);
+
+        // Feedback loop: atualiza status para revisão onde acerto < 70%
+        const materias = Store.get('materias') || [];
+        let gerouRevisao = false;
+
+        Object.keys(estatisticasPorTopico).forEach(topicoId => {
+            const stats = estatisticasPorTopico[topicoId];
+            const taxaAcerto = (stats.acertos / stats.total) * 100;
+            
+            if (taxaAcerto < 70) {
+                materias.forEach(m => {
+                    m.topicos.forEach(t => {
+                        if (t.id === topicoId) {
+                            t.status = 'revisao_agendada';
+                            gerouRevisao = true;
+                        }
+                    });
+                });
+            }
+        });
+
+        Store.set('materias', materias);
+        
+        if (gerouRevisao) {
+            this.generateSchedule();
+        }
+
+        Store.addXP(Math.max(15, nota));
+        return novoSimulado;
+    },
+
+    // Algoritmo 4: Gerador de Teste Final Geral (Cobre todas as grandes áreas curriculares)
+    generateFinalTest(qtdQuestoes = 20) {
+        // Agrupa questões por matéria para garantir equilíbrio entre áreas
+        const porMateria = {};
+        MOCK_QUESTOES.forEach(q => {
+            if (!porMateria[q.materia_id]) porMateria[q.materia_id] = [];
+            porMateria[q.materia_id].push(q);
+        });
+
+        const chaves = Object.keys(porMateria);
+        let selecionadas = [];
+        let index = 0;
+
+        // Distribui equitativamente entre as matérias
+        while (selecionadas.length < qtdQuestoes && selecionadas.length < MOCK_QUESTOES.length) {
+            const matKey = chaves[index % chaves.length];
+            const pool = porMateria[matKey];
+            
+            if (pool && pool.length > 0) {
+                const randomIdx = Math.floor(Math.random() * pool.length);
+                const questaoEscolhida = pool.splice(randomIdx, 1)[0];
+                selecionadas.push(questaoEscolhida);
+            }
+            index++;
+        }
+
+        // Embaralha as questões finais
+        return selecionadas.sort(() => 0.5 - Math.random());
+    },
+
+    // Algoritmo 5: Diagnóstico Aprofundado do Teste Final
+    processFinalTestResult(respostas, questoes, tempoSegundos, temposPorQuestao = []) {
+        let acertos = 0;
+        const desempenhoPorMateria = {};
+        const questoesDetalhadas = [];
+        const topicosParaReforco = new Set();
+
+        questoes.forEach((q, index) => {
+            const respDada = respostas[index];
+            const acertou = respDada === q.correta;
+            if (acertou) acertos++;
+            else {
+                topicosParaReforco.add({ id: q.topico_id, nome: q.topico_nome, materia: q.materia_nome });
+            }
+
+            // Estatísticas por matéria
+            if (!desempenhoPorMateria[q.materia_nome]) {
+                desempenhoPorMateria[q.materia_nome] = { total: 0, acertos: 0 };
+            }
+            desempenhoPorMateria[q.materia_nome].total++;
+            if (acertou) desempenhoPorMateria[q.materia_nome].acertos++;
+
+            questoesDetalhadas.push({
+                questao: q,
+                respostaDada: respDada,
+                acertou: acertou,
+                tempoGasto: temposPorQuestao[index] || 0
+            });
+        });
+
+        const percentualAcerto = questoes.length > 0 ? Math.round((acertos / questoes.length) * 100) : 0;
+        const tempoMedioSegundos = questoes.length > 0 ? Math.round(tempoSegundos / questoes.length) : 0;
+
+        // Cálculo Estimado de Nota TRI (300 a 980 pontos)
+        let notaTRI = 350;
+        if (percentualAcerto > 0) {
+            notaTRI = Math.round(380 + (percentualAcerto / 100) * 580);
+        }
+
+        // Veredito pedagógico
+        let veredito = '';
+        let badge = '';
+        let corBadge = '';
+
+        if (percentualAcerto >= 80) {
+            veredito = 'Excelente! Domínio avançado do conteúdo. Alto potencial de aprovação!';
+            badge = 'Nível Elite / Aprovado';
+            corBadge = 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/40';
+        } else if (percentualAcerto >= 60) {
+            veredito = 'Bom desempenho! Base sólida, mas com pontos específicos que merecem reforço.';
+            badge = 'Nível Competitivo';
+            corBadge = 'text-blue-500 bg-blue-100 dark:bg-blue-900/40';
+        } else {
+            veredito = 'Atenção! Foram identificadas lacunas conceituais importantes nas disciplinas.';
+            badge = 'Reforço Urgente Recomendado';
+            corBadge = 'text-amber-500 bg-amber-100 dark:bg-amber-900/40';
+        }
+
+        const resultadoFinal = {
+            id: 'final_' + Date.now(),
+            data: new Date().toISOString(),
+            questoesTotal: questoes.length,
+            acertos: acertos,
+            erros: questoes.length - acertos,
+            percentual: percentualAcerto,
+            notaTRI: notaTRI,
+            tempoSegundos: tempoSegundos,
+            tempoMedioSegundos: tempoMedioSegundos,
+            temposPorQuestao: temposPorQuestao,
+            veredito: veredito,
+            badge: badge,
+            corBadge: corBadge,
+            desempenhoPorMateria: desempenhoPorMateria,
+            questoesDetalhadas: questoesDetalhadas,
+            topicosParaReforco: Array.from(topicosParaReforco)
+        };
+
+        // Salva no Store e recompensa com XP
+        Store.saveFinalTest(resultadoFinal);
+
+        return resultadoFinal;
+    },
+
+    concluirTarefa(tarefaId) {
+        const tarefas = Store.get('tarefas') || [];
+        const materias = Store.get('materias') || [];
+        let topicoIdConcluido = null;
+
+        tarefas.forEach(t => {
+            if (t.id === tarefaId && t.status !== 'concluida') {
+                t.status = 'concluida';
+                topicoIdConcluido = t.topico_id;
+            }
+        });
+
+        if (topicoIdConcluido) {
+            // Marca o tópico como estudado no edital
+            materias.forEach(m => {
+                m.topicos.forEach(t => {
+                    if (t.id === topicoIdConcluido) {
+                        t.status = 'estudado';
+                    }
+                });
+            });
+
+            Store.set('tarefas', tarefas);
+            Store.set('materias', materias);
+            Store.addXP(50);
+            Store.incrementStreak();
+            return true;
+        }
+        return false;
+    }
+};
+
+const App = {
+    currentSimulado: null,
+    
+    // Estado do Teste Final
+    currentFinalTest: null,
+    finalTimerInterval: null,
+    finalTimeRemaining: 0,
+    finalSelectedMode: 20,
+    
+    // Pomodoro
+    pomodoroInterval: null,
+    pomodoroTime: 25 * 60,
+    pomodoroInitialDuration: 25 * 60,
+    isRunning: false,
+
+    init() {
+        Store.init();
+        this.bindEvents();
+        
+        const perfil = Store.get('perfil');
+        if (!perfil || !perfil.objetivo) {
+            this.navigate('onboarding');
+        } else {
+            Algorithms.generateSchedule();
+            this.updateSidebar();
+            this.navigate('dashboard');
+        }
+    },
+
+    bindEvents() {
+        const form = document.getElementById('onboarding-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const objetivo = document.getElementById('obj-exame').value;
+                const dataProva = document.getElementById('obj-data').value;
+                const horasPorDia = parseInt(document.getElementById('obj-horas').value);
+                
+                Store.updatePerfil({ objetivo, dataProva, horasPorDia });
+                Algorithms.generateSchedule();
+                
+                this.updateSidebar();
+                this.navigate('dashboard');
+                
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('flex');
+                }
+            });
+        }
+
+        // Rascunho auto-save
+        const rascunhoArea = document.getElementById('rascunho-textarea');
+        if (rascunhoArea) {
+            rascunhoArea.value = Store.getRascunho();
+            rascunhoArea.addEventListener('input', (e) => {
+                Store.saveRascunho(e.target.value);
+            });
+        }
+    },
+
+    navigate(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) {
+            target.classList.remove('hidden');
+            target.classList.add('fade-in');
+        }
+        
+        // Atualiza status ativo dos botões da sidebar
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            if (btn.dataset.target === viewId) {
+                btn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-primary');
+            } else {
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-primary');
+            }
+        });
+
+        // Dispara renderizadores específicos
+        if (viewId === 'dashboard') this.renderDashboard();
+        if (viewId === 'trilha') this.renderTrilha();
+        if (viewId === 'simulados') this.renderSimulados();
+        if (viewId === 'teste-final') this.renderTesteFinalHome();
+        if (viewId === 'stats') this.renderStats();
+
+        // Se estiver em tela móvel, fecha a sidebar após navegar
+        const sidebar = document.getElementById('main-sidebar');
+        if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('hidden')) {
+            sidebar.classList.add('hidden');
+        }
+    },
+
+    toggleMobileMenu() {
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('hidden');
+        }
+    },
+
+    updateSidebar() {
+        const perfil = Store.get('perfil') || {};
+        if (!perfil.objetivo) return;
+
+        const sidebarMeta = document.getElementById('sidebar-meta');
+        if (sidebarMeta) sidebarMeta.textContent = `Foco: ${perfil.objetivo}`;
+
+        const level = perfil.nivel || 1;
+        const xp = perfil.xp || 0;
+        const streak = perfil.streak || 0;
+
+        document.getElementById('user-level').textContent = level;
+        document.getElementById('user-xp').textContent = `${xp} XP`;
+        document.getElementById('user-streak').textContent = streak;
+        
+        const mobStreak = document.getElementById('mobile-streak');
+        if (mobStreak) mobStreak.textContent = streak;
+        
+        const currentLevelXp = xp % 100;
+        const progress = Math.min(100, (currentLevelXp / 100) * 100);
+        document.getElementById('user-xp-bar').style.width = `${progress}%`;
+    },
+
+    toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+    },
+
+    // --- DASHBOARD ---
+    renderDashboard() {
+        const todayStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('today-date').textContent = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
+
+        const todayISO = new Date().toISOString().split('T')[0];
+        const todasTarefas = Store.get('tarefas') || [];
+        
+        const tarefasHoje = todasTarefas.filter(t => t.dataStr === todayISO);
+        const container = document.getElementById('tarefas-hoje-container');
+        const contadorLabel = document.getElementById('tarefas-contador-label');
+        
+        if (contadorLabel) {
+            contadorLabel.textContent = `${tarefasHoje.length} tarefas`;
+        }
+
+        if (tarefasHoje.length === 0) {
+            container.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm text-center border border-gray-100 dark:border-gray-700">
+                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 text-secondary rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">
+                        <i class="fa-solid fa-champagne-glasses"></i>
+                    </div>
+                    <h4 class="font-bold text-base mb-1">Tudo em dia por hoje!</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto">Você concluiu suas metas de hoje ou não possui tarefas agendadas para esta data. Aproveite para fazer o Teste Final ou descansar.</p>
+                    <button onclick="App.navigate('teste-final')" class="mt-4 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow">
+                        Testar Conhecimentos no Teste Final
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = tarefasHoje.map(t => {
+                const isConcluida = t.status === 'concluida';
+                const isUrgente = t.tipo.includes('URGENTE');
+                const bordaClass = isUrgente ? 'border-l-4 border-rose-500 bg-rose-50/20 dark:bg-rose-950/10' : 'border-l-4 border-primary';
+                
+                return `
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 ${bordaClass} flex items-center justify-between transition hover:shadow-md ${isConcluida ? 'opacity-60' : ''}">
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" class="w-6 h-6 rounded-lg text-primary focus:ring-primary cursor-pointer accent-indigo-600" ${isConcluida ? 'checked disabled' : ''} onchange="App.concluirTarefa('${t.id}')">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">${t.materia_nome}</span>
+                                <span class="text-xs text-gray-400">• ${t.duracaoMinutos} min</span>
+                            </div>
+                            <h4 class="font-bold text-base ${isConcluida ? 'line-through text-gray-400' : ''}">${t.topico_nome}</h4>
+                            <span class="text-[11px] font-semibold ${isUrgente ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'} px-2 py-0.5 rounded-md mt-1 inline-block">
+                                ${t.tipo}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        this.updateEditalProgress();
+
+        // --- LÓGICA DO BOTÃO: PRÓXIMO CONTEÚDO A ESTUDAR ---
+        const proximoWrapper = document.getElementById('proximo-conteudo-wrapper');
+        if (proximoWrapper) {
+            const materias = Store.get('materias') || [];
+            let temProximoNoEdital = false;
+            materias.forEach(m => {
+                if (m.topicos.some(t => t.status === 'pendente' || t.status === 'revisao_agendada')) {
+                    temProximoNoEdital = true;
+                }
+            });
+
+            const pendentesHoje = tarefasHoje.filter(t => t.status !== 'concluida').length;
+            const todasConcluidasHoje = tarefasHoje.length > 0 && pendentesHoje === 0;
+
+            if (!temProximoNoEdital) {
+                proximoWrapper.innerHTML = `
+                    <div class="bg-gradient-to-r from-amber-500/10 via-primary/10 to-emerald-500/10 p-5 rounded-2xl border border-amber-300 dark:border-amber-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🏆</span>
+                            <div>
+                                <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100">Parabéns! Edital 100% Concluído</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Você já cobriu todos os conteúdos programáticos do edital. Faça o Teste Final para consolidar sua aprovação.</p>
+                            </div>
+                        </div>
+                        <button onclick="App.navigate('teste-final')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition whitespace-nowrap">
+                            Fazer Teste Final
+                        </button>
+                    </div>
+                `;
+            } else if (tarefasHoje.length === 0 || todasConcluidasHoje) {
+                // DESBLOQUEADO: Todos os conteúdos de hoje estão concluídos!
+                proximoWrapper.innerHTML = `
+                    <div class="bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-indigo-500/15 dark:from-emerald-950/40 dark:to-teal-950/40 p-5 rounded-2xl border-2 border-secondary/60 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-pulse">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-lg shadow">
+                                <i class="fa-solid fa-unlock-keyhole"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-emerald-800 dark:text-emerald-300">Conteúdos Concluídos com Sucesso!</h4>
+                                    <span class="bg-secondary/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-md uppercase">Desbloqueado</span>
+                                </div>
+                                <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Excelente disciplina! Clique ao lado para avançar e carregar o próximo conteúdo a ser estudado.</p>
+                            </div>
+                        </div>
+                        <button onclick="App.avancarProximoConteudo()" class="w-full sm:w-auto bg-gradient-to-r from-secondary to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-black text-xs shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2.5 transform hover:scale-105 whitespace-nowrap">
+                            <span>Próximo Conteúdo</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                // BLOQUEADO: Ainda há conteúdos pendentes a serem marcados como concluídos
+                proximoWrapper.innerHTML = `
+                    <div class="bg-gray-100 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 text-base">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-300">Próximo Conteúdo Bloqueado</h4>
+                                    <span class="bg-gray-200 dark:bg-gray-700 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Bloqueado</span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Marque como concluído os <strong>${pendentesHoje} conteúdo(s)</strong> pendente(s) de hoje para desbloquear o próximo tópico.</p>
+                            </div>
+                        </div>
+                        <button onclick="App.tentarAvancarProximoBloqueado(${pendentesHoje})" class="w-full sm:w-auto bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition opacity-75 whitespace-nowrap" title="Conclua os conteúdos acima para desbloquear">
+                            <i class="fa-solid fa-lock"></i> Próximo Conteúdo
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    },
+
+    concluirTarefa(tarefaId) {
+        if (Algorithms.concluirTarefa(tarefaId)) {
+            this.renderDashboard();
+            this.updateSidebar();
+        }
+    },
+
+    tentarAvancarProximoBloqueado(pendentes) {
+        alert(`Ação Bloqueada! 🔒\n\nVocê só pode ir para o próximo conteúdo após marcar como CONCLUÍDO todos os ${pendentes} conteúdo(s) programado(s) de hoje.`);
+    },
+
+    avancarProximoConteudo() {
+        const todayISO = new Date().toISOString().split('T')[0];
+        const todasTarefas = Store.get('tarefas') || [];
+        const tarefasHoje = todasTarefas.filter(t => t.dataStr === todayISO);
+        const pendentes = tarefasHoje.filter(t => t.status !== 'concluida');
+
+        // Validação estrita: se ainda houver tarefas pendentes hoje, bloqueia
+        if (pendentes.length > 0) {
+            alert(`Atenção: Você ainda precisa marcar como concluído os ${pendentes.length} conteúdo(s) pendente(s) de hoje antes de avançar!`);
+            return;
+        }
+
+        // Procura o próximo tópico não estudado na trilha
+        const materias = Store.get('materias') || [];
+        let proximoTopico = null;
+        let proximaMateria = null;
+
+        // Prioridade 1: Revisões urgentes agendadas
+        for (const m of materias) {
+            const topicoRev = m.topicos.find(t => t.status === 'revisao_agendada');
+            if (topicoRev) {
+                proximoTopico = topicoRev;
+                proximaMateria = m;
+                break;
+            }
+        }
+
+        // Prioridade 2: Tópicos regulares pendentes
+        if (!proximoTopico) {
+            for (const m of materias) {
+                const topicoPend = m.topicos.find(t => t.status === 'pendente');
+                if (topicoPend) {
+                    proximoTopico = topicoPend;
+                    proximaMateria = m;
+                    break;
+                }
+            }
+        }
+
+        if (!proximoTopico) {
+            alert("Parabéns! Todos os conteúdos programáticos do edital já foram estudados.");
+            return;
+        }
+
+        // Cria a nova tarefa ativa para hoje
+        const novaTarefa = {
+            id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+            topico_id: proximoTopico.id,
+            materia_nome: proximaMateria.nome,
+            topico_nome: proximoTopico.nome,
+            tipo: proximoTopico.status === 'revisao_agendada' ? 'REVISÃO URGENTE (Reforço)' : 'Teoria + Exercícios',
+            duracaoMinutos: 50,
+            dataStr: todayISO,
+            status: 'pendente'
+        };
+
+        // Remove tarefas futuras duplicadas deste mesmo tópico para manter o cronograma uniforme
+        const tarefasAtualizadas = todasTarefas.filter(t => !(t.topico_id === proximoTopico.id && t.status === 'pendente' && t.dataStr > todayISO));
+        tarefasAtualizadas.push(novaTarefa);
+        Store.set('tarefas', tarefasAtualizadas);
+
+        this.renderDashboard();
+        this.updateSidebar();
+
+        alert(`✨ Próximo Conteúdo Desbloqueado com Sucesso!\n\n📚 Disciplina: ${proximaMateria.nome}\n📖 Tópico: ${proximoTopico.nome}\n\nO conteúdo foi adicionado às suas tarefas ativas de hoje. Bons estudos!`);
+    },
+
+    updateEditalProgress() {
+        const materias = Store.get('materias') || [];
+        let total = 0;
+        let concluidos = 0;
+
+        materias.forEach(m => {
+            m.topicos.forEach(t => {
+                total++;
+                if (t.status === 'estudado') concluidos++;
+            });
+        });
+
+        const pct = total === 0 ? 0 : Math.round((concluidos / total) * 100);
+        document.getElementById('edital-progress-text').textContent = `${pct}%`;
+        document.getElementById('edital-progress-label').textContent = `${concluidos} de ${total} tópicos dominados`;
+        
+        const circle = document.getElementById('edital-progress-circle');
+        if (circle) {
+            circle.style.strokeDasharray = `${pct}, 100`;
+        }
+    },
+
+    // --- TRILHA / EDITAL EXPANDIDO ---
+    renderTrilha(filtro = '') {
+        const materias = Store.get('materias') || [];
+        const container = document.getElementById('materias-container');
+        
+        const filtradas = materias.map(m => {
+            if (!filtro) return m;
+            const termo = filtro.toLowerCase();
+            const bateMateria = m.nome.toLowerCase().includes(termo);
+            const topicosFiltrados = m.topicos.filter(t => t.nome.toLowerCase().includes(termo));
+            if (bateMateria) return m;
+            if (topicosFiltrados.length > 0) {
+                return { ...m, topicos: topicosFiltrados };
+            }
+            return null;
+        }).filter(Boolean);
+
+        if (filtradas.length === 0) {
+            container.innerHTML = `<p class="text-center text-gray-500 py-10">Nenhum tópico encontrado para "${filtro}".</p>`;
+            return;
+        }
+
+        container.innerHTML = filtradas.map(m => {
+            const concluidos = m.topicos.filter(t => t.status === 'estudado').length;
+            const pct = m.topicos.length === 0 ? 0 : Math.round((concluidos / m.topicos.length) * 100);
+            
+            return `
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold shadow-sm" style="background-color: ${m.cor || '#4F46E5'}">
+                            <i class="fa-solid ${m.icone || 'fa-book'}"></i>
+                        </span>
+                        <div>
+                            <h3 class="font-bold text-lg md:text-xl">${m.nome}</h3>
+                            <p class="text-xs text-gray-400">${m.topicos.length} tópicos cadastrados</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        ${concluidos > 0 ? `
+                        <button onclick="App.reiniciarMateria('${m.id}')" title="Reiniciar conteúdos estudados desta disciplina" class="text-xs text-rose-500 hover:text-rose-600 font-semibold flex items-center gap-1 px-2.5 py-1 rounded-xl border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i> Zerar Matéria
+                        </button>` : ''}
+                        <span class="text-sm font-black text-secondary">${pct}% Concluído</span>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-5">
+                    <div class="bg-secondary h-2 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${m.topicos.map(t => {
+                        let icon = 'fa-circle text-gray-300 dark:text-gray-600';
+                        let statusText = 'Pendente';
+                        let statusBadge = 'bg-gray-100 dark:bg-gray-700 text-gray-500';
+                        let canResetTopic = false;
+                        
+                        if (t.status === 'estudado') {
+                            icon = 'fa-check-circle text-secondary';
+                            statusText = 'Dominado';
+                            statusBadge = 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold';
+                            canResetTopic = true;
+                        } else if (t.status === 'revisao_agendada') {
+                            icon = 'fa-triangle-exclamation text-rose-500';
+                            statusText = 'Revisão Urgente';
+                            statusBadge = 'bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold';
+                            canResetTopic = true;
+                        }
+
+                        return `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-900/30 text-xs">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fa-solid ${icon} text-sm"></i>
+                                <span class="${t.status === 'estudado' ? 'text-gray-400 line-through' : 'font-medium'}">${t.nome}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full ${statusBadge}">${statusText}</span>
+                                ${canResetTopic ? `
+                                <button onclick="App.reiniciarTopicoIndividual('${t.id}')" title="Reiniciar este conteúdo (voltar para pendente)" class="text-gray-400 hover:text-amber-500 p-1 transition rounded hover:bg-gray-200 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>` : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    filtrarTrilha(termo) {
+        this.renderTrilha(termo);
+    },
+
+    // --- SIMULADOS ADAPTATIVOS ---
+    renderSimulados() {
+        const simulados = Store.get('simulados') || [];
+        const container = document.getElementById('simulados-historico');
+        
+        if (simulados.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 text-xs py-4">Nenhum simulado adaptativo realizado ainda. Gere o primeiro acima!</p>`;
+            return;
+        }
+
+        container.innerHTML = simulados.slice().reverse().map(s => `
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 flex justify-between items-center shadow-sm">
+            <div>
+                <p class="text-xs text-gray-400">Data: ${new Date(s.data).toLocaleDateString('pt-BR')}</p>
+                <p class="font-bold text-base">Simulado Adaptativo (${s.questoes_total} questões)</p>
+                <p class="text-xs text-gray-500 mt-0.5">${s.acertos} acertos de ${s.questoes_total}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-2xl font-black ${s.nota >= 70 ? 'text-secondary' : 'text-rose-500'}">${s.nota}%</p>
+                <p class="text-[11px] text-gray-400 font-bold uppercase">Nota</p>
+            </div>
+        </div>`).join('');
+    },
+
+    iniciarSimulado() {
+        const qtd = parseInt(document.getElementById('sim-qtd').value);
+        const questoes = Algorithms.generateSimulado(qtd);
+        
+        const errorMsg = document.getElementById('sim-error-msg');
+        if (questoes.length === 0) {
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+        errorMsg.classList.add('hidden');
+
+        this.currentSimulado = {
+            questoes,
+            respostas: new Array(questoes.length).fill(null),
+            startTime: Date.now()
+        };
+
+        this.renderSimuladoExec();
+        document.getElementById('view-simulados').classList.add('hidden');
+        document.getElementById('view-simulado-exec').classList.remove('hidden');
+        
+        let secs = 0;
+        this.simTimer = setInterval(() => {
+            secs++;
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            document.getElementById('sim-timer').textContent = `${m}:${s}`;
+        }, 1000);
+    },
+
+    renderSimuladoExec() {
+        const container = document.getElementById('sim-questoes-container');
+        const qs = this.currentSimulado.questoes;
+        
+        container.innerHTML = qs.map((q, i) => `
+            <div class="mb-8 bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-primary uppercase">${q.materia_nome || 'Disciplina'}</span>
+                    <span class="text-xs text-gray-400">Questão ${i+1} de ${qs.length}</span>
+                </div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900 dark:text-gray-100">${q.texto}</h4>
+                <div class="space-y-3">
+                    ${q.alternativas.map((alt, j) => `
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 cursor-pointer transition">
+                            <input type="radio" name="adapt_q_${i}" value="${j}" onchange="App.responderSimuladoAdaptativo(${i}, ${j})" class="mt-1 w-4 h-4 text-primary">
+                            <span class="text-sm">${alt}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    responderSimuladoAdaptativo(qIndex, altIndex) {
+        if (this.currentSimulado) {
+            this.currentSimulado.respostas[qIndex] = altIndex;
+        }
+    },
+
+    finalizarSimulado() {
+        if (!confirm("Deseja realmente entregar o simulado adaptativo agora?")) return;
+        
+        clearInterval(this.simTimer);
+        const res = Algorithms.processSimuladoResult(this.currentSimulado.respostas, this.currentSimulado.questoes);
+        
+        alert(`Simulado finalizado com sucesso!\nSua nota: ${res.nota}%\nAcertos: ${res.acertos} de ${res.questoes_total}`);
+        
+        this.updateSidebar();
+        document.getElementById('view-simulado-exec').classList.add('hidden');
+        this.navigate('simulados');
+    },
+
+    // --- NOVO: TESTE FINAL DE CONHECIMENTOS ---
+    renderTesteFinalHome() {
+        const historico = Store.get('testes_finais') || [];
+        const container = document.getElementById('testes-finais-historico');
+        
+        if (historico.length === 0) {
+            container.innerHTML = `
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-2xl text-center border border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400">Você ainda não realizou nenhum Teste Final. Inicie seu primeiro exame acima para receber o diagnóstico geral de prontidão!</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <h3 class="font-bold text-lg border-b pb-2 dark:border-gray-700 mb-4">Exames Finais Anteriores</h3>
+            <div class="space-y-3">
+                ${historico.slice().reverse().map(h => `
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400">${new Date(h.data).toLocaleDateString('pt-BR')}</span>
+                            <h4 class="font-bold text-base">Teste Final (${h.questoesTotal} questões)</h4>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md inline-block mt-1 ${h.corBadge}">${h.badge}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-black text-amber-500">${h.notaTRI}</span>
+                            <span class="text-[10px] text-gray-400 block font-bold uppercase">TRI ENEM</span>
+                            <span class="text-xs text-gray-500 font-semibold">${h.percentual}% de acerto</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+
+    selecionarModoTesteFinal(qtd) {
+        this.finalSelectedMode = qtd;
+        [10, 20, 35].forEach(m => {
+            const el = document.getElementById(`label-mode-${m}`);
+            if (el) {
+                if (m === qtd) {
+                    el.className = "border-2 border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between";
+                } else {
+                    el.className = "border dark:border-gray-700 p-4 rounded-2xl cursor-pointer hover:border-amber-500 transition flex flex-col justify-between";
+                }
+            }
+        });
+    },
+
+    iniciarTesteFinal() {
+        const qtd = this.finalSelectedMode || 20;
+        const questoes = Algorithms.generateFinalTest(qtd);
+
+        if (questoes.length === 0) {
+            alert('Erro ao carregar o banco de questões.');
+            return;
+        }
+
+        // Tempo limite: 2 minutos por questão
+        const tempoTotalSegundos = qtd * 120;
+
+        this.currentFinalTest = {
+            questoes: questoes,
+            respostas: new Array(questoes.length).fill(null),
+            marcadasParaRevisao: new Set(),
+            temposPorQuestao: new Array(questoes.length).fill(0),
+            currentIndex: 0,
+            startTime: Date.now(),
+            tempoTotalSegundos: tempoTotalSegundos
+        };
+
+        this.finalTimeRemaining = tempoTotalSegundos;
+
+        // Inicia o cronômetro regressivo
+        if (this.finalTimerInterval) clearInterval(this.finalTimerInterval);
+        this.finalTimerInterval = setInterval(() => {
+            if (this.finalTimeRemaining > 0) {
+                this.finalTimeRemaining--;
+                // Incrementa tempo gasto na questão ativa
+                if (this.currentFinalTest) {
+                    this.currentFinalTest.temposPorQuestao[this.currentFinalTest.currentIndex]++;
+                    this.updateFinalQuestionTimerDisplay();
+                }
+                this.updateFinalTimerDisplay();
+            } else {
+                clearInterval(this.finalTimerInterval);
+                alert('O tempo do Teste Final encerrou! Entregando automaticamente a prova.');
+                this.finalizarEProcessarTesteFinal();
+            }
+        }, 1000);
+
+        this.updateFinalTimerDisplay();
+        this.updateFinalQuestionTimerDisplay();
+        this.renderFinalCurrentQuestion();
+        this.renderFinalAnswerCard();
+
+        document.getElementById('view-teste-final').classList.add('hidden');
+        document.getElementById('view-teste-final-exec').classList.remove('hidden');
+    },
+
+    updateFinalTimerDisplay() {
+        const m = Math.floor(this.finalTimeRemaining / 60).toString().padStart(2, '0');
+        const s = (this.finalTimeRemaining % 60).toString().padStart(2, '0');
+        const display = document.getElementById('final-timer-display');
+        if (display) {
+            display.textContent = `${m}:${s}`;
+            if (this.finalTimeRemaining <= 300) { // menos de 5 min
+                display.parentElement.classList.add('animate-pulse');
+            } else {
+                display.parentElement.classList.remove('animate-pulse');
+            }
+        }
+    },
+
+    updateFinalQuestionTimerDisplay() {
+        if (!this.currentFinalTest) return;
+        const idx = this.currentFinalTest.currentIndex;
+        const segundos = this.currentFinalTest.temposPorQuestao[idx] || 0;
+        const m = Math.floor(segundos / 60).toString().padStart(2, '0');
+        const s = (segundos % 60).toString().padStart(2, '0');
+        
+        const display = document.getElementById('final-quest-timer-display');
+        if (display) {
+            display.textContent = `${m}:${s}`;
+        }
+
+        const cardDisplay = document.getElementById('final-quest-card-timer');
+        if (cardDisplay) {
+            cardDisplay.textContent = `${m}:${s}`;
+        }
+
+        const badge = document.getElementById('final-question-timer-badge');
+        if (badge) {
+            if (segundos >= 180) { // mais de 3 minutos
+                badge.className = "bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 px-3 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 animate-pulse";
+                badge.title = "Atenção: mais de 3 minutos nesta questão! Gerencie seu tempo com atenção.";
+            } else {
+                badge.className = "bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-900/40 text-primary dark:text-indigo-300 px-3 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5";
+                badge.title = "Tempo decorrido nesta questão";
+            }
+        }
+    },
+
+    renderFinalCurrentQuestion() {
+        const test = this.currentFinalTest;
+        if (!test) return;
+
+        const idx = test.currentIndex;
+        const q = test.questoes[idx];
+        const container = document.getElementById('final-single-question-container');
+        
+        document.getElementById('final-quest-counter').textContent = `Questão ${idx + 1} de ${test.questoes.length}`;
+        this.updateFinalQuestionTimerDisplay();
+
+        // Atualiza estado do botão "Marcar para Revisar"
+        const btnReview = document.getElementById('btn-final-review');
+        if (btnReview) {
+            if (test.marcadasParaRevisao.has(idx)) {
+                btnReview.innerHTML = `<i class="fa-solid fa-bookmark"></i> Marcada para Revisar`;
+                btnReview.className = "text-xs font-bold px-4 py-2 rounded-xl bg-amber-500 text-white transition flex items-center gap-1.5 shadow-sm";
+            } else {
+                btnReview.innerHTML = `<i class="fa-regular fa-bookmark"></i> Marcar para Revisar`;
+                btnReview.className = "text-xs font-bold px-4 py-2 rounded-xl border border-amber-400 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-1.5";
+            }
+        }
+
+        // Desabilita "Anterior" se for a primeira questão
+        const btnPrev = document.getElementById('btn-final-prev');
+        if (btnPrev) {
+            btnPrev.disabled = idx === 0;
+            btnPrev.style.opacity = idx === 0 ? '0.5' : '1';
+        }
+
+        // Texto do botão "Próxima" ou "Concluir"
+        const btnNext = document.getElementById('btn-final-next');
+        if (btnNext) {
+            if (idx === test.questoes.length - 1) {
+                btnNext.innerHTML = `Revisar Entrega <i class="fa-solid fa-check"></i>`;
+            } else {
+                btnNext.innerHTML = `Próxima <i class="fa-solid fa-arrow-right"></i>`;
+            }
+        }
+
+        const respostaAtual = test.respostas[idx];
+
+        container.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black px-3 py-1 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
+                            ${q.materia_nome}
+                        </span>
+                        <span class="text-xs text-gray-400 font-medium">${q.topico_nome}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 px-2.5 py-1 rounded-xl">
+                        <i class="fa-solid fa-stopwatch text-indigo-500"></i>
+                        <span>Nesta questão: <span id="final-quest-card-timer">00:00</span></span>
+                    </div>
+                </div>
+                <h3 class="text-xl md:text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 leading-relaxed">${q.texto}</h3>
+                <div class="space-y-3">
+                    ${q.alternativas.map((alt, optIdx) => {
+                        const checked = respostaAtual === optIdx;
+                        return `
+                        <label class="flex items-start gap-4 p-4 rounded-2xl border-2 ${checked ? 'border-primary bg-indigo-50/50 dark:bg-indigo-950/30' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} cursor-pointer transition">
+                            <input type="radio" name="final_active_q" value="${optIdx}" ${checked ? 'checked' : ''} onchange="App.responderQuestaoFinal(${idx}, ${optIdx})" class="mt-1 w-5 h-5 text-primary accent-indigo-600">
+                            <span class="text-sm md:text-base leading-snug font-medium text-gray-800 dark:text-gray-200">${alt}</span>
+                        </label>`;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    responderQuestaoFinal(qIndex, altIndex) {
+        if (this.currentFinalTest) {
+            this.currentFinalTest.respostas[qIndex] = altIndex;
+            this.renderFinalAnswerCard();
+        }
+    },
+
+    toggleMarkReviewCurrent() {
+        if (!this.currentFinalTest) return;
+        const idx = this.currentFinalTest.currentIndex;
+        if (this.currentFinalTest.marcadasParaRevisao.has(idx)) {
+            this.currentFinalTest.marcadasParaRevisao.delete(idx);
+        } else {
+            this.currentFinalTest.marcadasParaRevisao.add(idx);
+        }
+        this.renderFinalCurrentQuestion();
+        this.renderFinalAnswerCard();
+    },
+
+    nextFinalQuestion() {
+        if (!this.currentFinalTest) return;
+        if (this.currentFinalTest.currentIndex < this.currentFinalTest.questoes.length - 1) {
+            this.currentFinalTest.currentIndex++;
+            this.renderFinalCurrentQuestion();
+            this.renderFinalAnswerCard();
+        } else {
+            this.confirmarEntregaTesteFinal();
+        }
+    },
+
+    prevFinalQuestion() {
+        if (!this.currentFinalTest) return;
+        if (this.currentFinalTest.currentIndex > 0) {
+            this.currentFinalTest.currentIndex--;
+            this.renderFinalCurrentQuestion();
+            this.renderFinalAnswerCard();
+        }
+    },
+
+    goToFinalQuestion(index) {
+        if (!this.currentFinalTest) return;
+        this.currentFinalTest.currentIndex = index;
+        this.renderFinalCurrentQuestion();
+        this.renderFinalAnswerCard();
+    },
+
+    renderFinalAnswerCard() {
+        const test = this.currentFinalTest;
+        if (!test) return;
+
+        const grid = document.getElementById('final-card-grid');
+        const progressLabel = document.getElementById('final-card-progress');
+        
+        let respondidas = 0;
+        test.respostas.forEach(r => { if (r !== null) respondidas++; });
+        if (progressLabel) progressLabel.textContent = `${respondidas}/${test.questoes.length}`;
+
+        if (!grid) return;
+
+        grid.innerHTML = test.questoes.map((_, idx) => {
+            const isAtual = test.currentIndex === idx;
+            const isRespondida = test.respostas[idx] !== null;
+            const isRevisar = test.marcadasParaRevisao.has(idx);
+
+            let corFundo = 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+            if (isRevisar) {
+                corFundo = 'bg-amber-500 text-white font-bold';
+            } else if (isRespondida) {
+                corFundo = 'bg-primary text-white font-bold';
+            }
+
+            const bordaDestaque = isAtual ? 'ring-2 ring-offset-2 ring-primary dark:ring-offset-gray-900 font-black' : '';
+
+            return `
+            <button onclick="App.goToFinalQuestion(${idx})" class="w-10 h-10 rounded-xl flex items-center justify-center text-xs transition transform hover:scale-105 ${corFundo} ${bordaDestaque}">
+                ${idx + 1}
+            </button>`;
+        }).join('');
+    },
+
+    toggleRascunho() {
+        const modal = document.getElementById('rascunho-modal');
+        if (modal) modal.classList.toggle('hidden');
+    },
+
+    confirmarEntregaTesteFinal() {
+        const test = this.currentFinalTest;
+        if (!test) return;
+
+        let pendentes = 0;
+        test.respostas.forEach(r => { if (r === null) pendentes++; });
+        const marcadas = test.marcadasParaRevisao.size;
+
+        let msg = "Deseja realmente entregar o Teste Final?";
+        if (pendentes > 0 || marcadas > 0) {
+            msg = `Atenção!\nVocê ainda tem ${pendentes} questões em branco e ${marcadas} marcadas para revisar.\n\nDeseja entregar agora mesmo?`;
+        }
+
+        if (confirm(msg)) {
+            this.finalizarEProcessarTesteFinal();
+        }
+    },
+
+    finalizarEProcessarTesteFinal() {
+        if (this.finalTimerInterval) clearInterval(this.finalTimerInterval);
+        
+        const test = this.currentFinalTest;
+        const tempoGasto = test.tempoTotalSegundos - this.finalTimeRemaining;
+        
+        const resultado = Algorithms.processFinalTestResult(
+            test.respostas, 
+            test.questoes, 
+            tempoGasto,
+            test.temposPorQuestao
+        );
+        this.resultadoAtualDoTesteFinal = resultado;
+
+        // Oculta tela de exame e renderiza o diagnóstico detalhado
+        document.getElementById('view-teste-final-exec').classList.add('hidden');
+        this.renderRelatorioTesteFinal(resultado);
+        this.updateSidebar();
+        this.navigate('teste-final-resultado');
+    },
+
+    renderRelatorioTesteFinal(res) {
+        document.getElementById('final-report-pct').textContent = `${res.percentual}%`;
+        document.getElementById('final-report-raw').textContent = `${res.acertos} de ${res.questoesTotal} acertos`;
+        document.getElementById('final-report-tri').textContent = res.notaTRI;
+        
+        const mins = Math.floor(res.tempoSegundos / 60);
+        const secs = res.tempoSegundos % 60;
+        document.getElementById('final-report-tempo').textContent = `${mins}m ${secs}s`;
+
+        // Tempo Médio por Questão
+        const avgMins = Math.floor(res.tempoMedioSegundos / 60);
+        const avgSecs = res.tempoMedioSegundos % 60;
+        const tempoMedioEl = document.getElementById('final-report-tempo-medio');
+        if (tempoMedioEl) {
+            tempoMedioEl.textContent = `${avgMins}m ${avgSecs}s`;
+        }
+        const ritmoBadge = document.getElementById('final-report-ritmo-badge');
+        if (ritmoBadge) {
+            if (res.tempoMedioSegundos <= 180) {
+                ritmoBadge.textContent = "Ritmo Ideal (≤3m)";
+                ritmoBadge.className = "text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1";
+            } else {
+                ritmoBadge.textContent = "Atenção: Ritmo Lento (>3m)";
+                ritmoBadge.className = "text-[11px] text-rose-600 dark:text-rose-400 font-bold block mt-1";
+            }
+        }
+
+        const badgeEl = document.getElementById('final-report-badge');
+        badgeEl.textContent = res.badge;
+        badgeEl.className = `inline-block px-4 py-2 rounded-xl text-sm font-bold mb-4 ${res.corBadge}`;
+
+        document.getElementById('final-report-veredito').textContent = res.veredito;
+
+        // Renderiza barras de matérias
+        const materiasContainer = document.getElementById('final-report-materias');
+        materiasContainer.innerHTML = Object.keys(res.desempenhoPorMateria).map(matNome => {
+            const st = res.desempenhoPorMateria[matNome];
+            const pct = Math.round((st.acertos / st.total) * 100);
+            return `
+            <div>
+                <div class="flex justify-between items-center text-sm font-semibold mb-1">
+                    <span>${matNome}</span>
+                    <span class="${pct >= 70 ? 'text-secondary' : 'text-rose-500'} font-bold">${pct}% (${st.acertos}/${st.total})</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                    <div class="${pct >= 70 ? 'bg-secondary' : 'bg-rose-500'} h-2.5 rounded-full" style="width: ${pct}%"></div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Card de reforço: se não houver erros, oculta
+        const reforcoCard = document.getElementById('final-reforco-card');
+        if (res.erros === 0) {
+            reforcoCard.classList.add('hidden');
+        } else {
+            reforcoCard.classList.remove('hidden');
+            document.getElementById('final-reforco-desc').textContent = 
+                `Identificamos ${res.erros} questões incorretas em ${res.topicosParaReforco.length} tópicos. Adicione esses tópicos à sua rotina para fixar os conteúdos imediatamente!`;
+        }
+
+        // Renderiza Gabarito Comentado com tempo gasto em cada questão
+        const gabaritoContainer = document.getElementById('final-report-gabarito');
+        gabaritoContainer.innerHTML = res.questoesDetalhadas.map((item, i) => {
+            const q = item.questao;
+            const acertou = item.acertou;
+            const respDada = item.respostaDada !== null ? q.alternativas[item.respostaDada] : 'Não respondida';
+            const corretaTexto = q.alternativas[q.correta];
+            
+            const tQ = item.tempoGasto || 0;
+            const qM = Math.floor(tQ / 60);
+            const qS = tQ % 60;
+            const tempoQStr = `${qM}m ${qS}s`;
+
+            return `
+            <div class="p-5 rounded-2xl border ${acertou ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/10' : 'border-rose-200 dark:border-rose-900/50 bg-rose-50/20 dark:bg-rose-950/10'} space-y-3">
+                <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+                    <span class="font-bold text-gray-500 uppercase">${q.materia_nome} • ${q.topico_nome}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-full font-bold text-xs ${tQ > 180 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' : 'bg-indigo-50 text-primary dark:bg-indigo-950/50 dark:text-indigo-300'}">
+                            <i class="fa-solid fa-stopwatch mr-1"></i> ${tempoQStr}
+                        </span>
+                        <span class="px-2.5 py-1 rounded-full font-bold ${acertou ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300'}">
+                            ${acertou ? 'Acertou' : 'Errou'}
+                        </span>
+                    </div>
+                </div>
+                <h4 class="font-bold text-base text-gray-900 dark:text-gray-100">${i+1}. ${q.texto}</h4>
+                <div class="text-xs space-y-1">
+                    <p class="${acertou ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-rose-600 dark:text-rose-400 font-semibold'}">
+                        Sua Resposta: ${respDada}
+                    </p>
+                    ${!acertou ? `<p class="text-emerald-600 dark:text-emerald-400 font-semibold">Resposta Correta: ${corretaTexto}</p>` : ''}
+                </div>
+                <div class="mt-3 p-3.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300">
+                    <span class="font-bold text-primary block mb-1"><i class="fa-solid fa-lightbulb"></i> Explicação Didática:</span>
+                    ${q.explicacao}
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    agendarReforcoDoTesteFinal() {
+        if (!this.resultadoAtualDoTesteFinal || !this.resultadoAtualDoTesteFinal.topicosParaReforco) return;
+
+        const materias = Store.get('materias') || [];
+        const topicosErrados = this.resultadoAtualDoTesteFinal.topicosParaReforco;
+
+        topicosErrados.forEach(errado => {
+            materias.forEach(m => {
+                m.topicos.forEach(t => {
+                    if (t.id === errado.id) {
+                        t.status = 'revisao_agendada';
+                    }
+                });
+            });
+        });
+
+        Store.set('materias', materias);
+        Algorithms.generateSchedule();
+
+        alert(`${topicosErrados.length} tópicos foram reagendados como REVISÃO URGENTE na sua rotina diária com sucesso!`);
+        this.navigate('dashboard');
+    },
+
+    // --- RECOMEÇAR ESTUDOS (MODAL & LÓGICA) ---
+    abrirModalRecomecar() {
+        const modal = document.getElementById('modal-recomecar');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    fecharModalRecomecar() {
+        const modal = document.getElementById('modal-recomecar');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    reiniciarEstudosERotina() {
+        if (!confirm("Deseja realmente reiniciar os estudos e a rotina de testes?\n\n• Todos os tópicos do edital voltarão para 'Pendente'\n• Novas tarefas serão calculadas a partir de hoje\n• O histórico de simulados e testes será reiniciado\n\n(Suas configurações de meta e horas diárias serão mantidas)")) return;
+
+        Store.resetEstudosERotinaTestes();
+        this.renderDashboard();
+        this.updateSidebar();
+        this.updateEditalProgress();
+        alert("Seus estudos e a rotina de testes foram reiniciados com sucesso! Seu novo cronograma está pronto.");
+    },
+
+    reiniciarTodosConteudosEstudados() {
+        if (!confirm("Deseja reiniciar todos os conteúdos estudados? Os tópicos voltarão para 'Pendente' e serão re-agendados nas suas tarefas diárias.")) return;
+        Store.resetAllConteudosEstudados();
+        this.renderTrilha();
+        this.updateSidebar();
+        this.updateEditalProgress();
+        alert("Todos os conteúdos estudados foram reiniciados com sucesso! Você pode estudá-los novamente.");
+    },
+
+    reiniciarMateria(materiaId) {
+        if (!confirm("Deseja reiniciar os conteúdos estudados desta disciplina?")) return;
+        Store.resetMateriaConteudos(materiaId);
+        this.renderTrilha();
+        this.updateSidebar();
+        this.updateEditalProgress();
+    },
+
+    reiniciarTopicoIndividual(topicoId) {
+        Store.resetTopicoIndividual(topicoId);
+        this.renderTrilha();
+        this.updateSidebar();
+        this.updateEditalProgress();
+    },
+
+    executarReset(tipo) {
+        if (tipo === 3) {
+            this.fecharModalRecomecar();
+            this.reiniciarTodosConteudosEstudados();
+        } else if (tipo === 1) {
+            if (!confirm("Tem certeza que deseja reiniciar o progresso da trilha? Suas tarefas serão recalculadas a partir de hoje.")) return;
+            Store.resetProgressOnly();
+            this.fecharModalRecomecar();
+            this.updateSidebar();
+            this.navigate('dashboard');
+            alert("Trilha reiniciada com sucesso! Seu novo cronograma foi gerado.");
+        } else if (tipo === 2) {
+            if (!confirm("ATENÇÃO: Isso apagará todos os dados, notas de simulados e configurações de meta. Deseja continuar?")) return;
+            Store.resetAllFactory();
+            this.fecharModalRecomecar();
+            this.navigate('onboarding');
+            alert("Aplicativo restaurado para as configurações iniciais de fábrica.");
+        }
+    },
+
+    // --- STATS GERAIS ---
+    renderStats() {
+        const simulados = Store.get('simulados') || [];
+        const testesFinais = Store.get('testes_finais') || [];
+        
+        document.getElementById('stats-sim-total').textContent = simulados.length;
+        document.getElementById('stats-final-total').textContent = testesFinais.length;
+        
+        if (simulados.length > 0) {
+            const media = simulados.reduce((acc, s) => acc + s.nota, 0) / simulados.length;
+            document.getElementById('stats-sim-media').textContent = Math.round(media);
+        } else {
+            document.getElementById('stats-sim-media').textContent = '0';
+        }
+
+        const tarefas = Store.get('tarefas') || [];
+        const temRevisao = tarefas.some(t => t.status === 'pendente' && t.tipo.includes('URGENTE'));
+        
+        const recList = document.getElementById('recomenda-lista');
+        let recs = [];
+        
+        if (temRevisao) {
+            recs.push(`
+                <li class="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 flex items-start gap-2.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5"></i>
+                    <div>
+                        <span class="font-bold text-rose-700 dark:text-rose-300 block">Lacunas de Aprendizagem Detectadas</span>
+                        Você errou questões recentes nos simulados. O algoritmo agendou tarefas de reforço prioritárias para hoje e os próximos dias.
+                    </div>
+                </li>
+            `);
+        }
+        
+        if (testesFinais.length > 0) {
+            const ultimoTeste = testesFinais[testesFinais.length - 1];
+            recs.push(`
+                <li class="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/50 flex items-start gap-2.5">
+                    <i class="fa-solid fa-award text-amber-500 mt-0.5"></i>
+                    <div>
+                        <span class="font-bold text-amber-700 dark:text-amber-300 block">Último Teste Final: TRI ${ultimoTeste.notaTRI} (${ultimoTeste.percentual}%)</span>
+                        ${ultimoTeste.veredito}
+                    </div>
+                </li>
+            `);
+        } else {
+            recs.push(`
+                <li class="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-200 dark:border-indigo-900/50 flex items-start gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-primary mt-0.5"></i>
+                    <div>
+                        <span class="font-bold text-indigo-700 dark:text-indigo-300 block">Dica do Sistema</span>
+                        Realize o Teste Final para obter uma estimativa confiável da sua nota TRI do ENEM e verificar sua prontidão para a prova.
+                    </div>
+                </li>
+            `);
+        }
+
+        recList.innerHTML = recs.join('');
+    },
+
+    // --- POMODORO (TIMER AJUSTÁVEL) ---
+    openPomodoro() {
+        document.getElementById('pomodoro-modal').classList.remove('hidden');
+        this.updatePomodoroDisplay();
+    },
+    closePomodoro() {
+        document.getElementById('pomodoro-modal').classList.add('hidden');
+    },
+    setPomodoroMinutes(minutes) {
+        const min = parseInt(minutes);
+        if (isNaN(min) || min < 1) return;
+        this.pausePomodoro();
+        this.pomodoroInitialDuration = min * 60;
+        this.pomodoroTime = min * 60;
+        this.updatePomodoroDisplay();
+        
+        const input = document.getElementById('pom-custom-input');
+        if (input) input.value = min;
+
+        // Atualiza destaque visual dos botões pré-definidos
+        document.querySelectorAll('.pom-preset-btn').forEach(btn => {
+            if (parseInt(btn.dataset.min) === min) {
+                btn.className = "pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-primary bg-primary/10 text-primary transition";
+            } else {
+                btn.className = "pom-preset-btn px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary transition";
+            }
+        });
+    },
+    applyCustomPomodoro() {
+        const input = document.getElementById('pom-custom-input');
+        if (input && input.value) {
+            this.setPomodoroMinutes(input.value);
+        }
+    },
+    resetPomodoro() {
+        this.pausePomodoro();
+        this.pomodoroTime = this.pomodoroInitialDuration || (25 * 60);
+        this.updatePomodoroDisplay();
+    },
+    updatePomodoroDisplay() {
+        const m = Math.floor(this.pomodoroTime / 60).toString().padStart(2, '0');
+        const s = (this.pomodoroTime % 60).toString().padStart(2, '0');
+        document.getElementById('pom-display').textContent = `${m}:${s}`;
+    },
+    startPomodoro() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        this.pomodoroInterval = setInterval(() => {
+            if (this.pomodoroTime > 0) {
+                this.pomodoroTime--;
+                this.updatePomodoroDisplay();
+            } else {
+                this.pausePomodoro();
+                alert('Pomodoro Finalizado! Excelente foco. Descanse 5 minutos.');
+                this.pomodoroTime = this.pomodoroInitialDuration || (25 * 60);
+                this.updatePomodoroDisplay();
+            }
+        }, 1000);
+    },
+    pausePomodoro() {
+        this.isRunning = false;
+        clearInterval(this.pomodoroInterval);
+    }
+};
+
+// Inicialização automática
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+});
+
+</script>
+</body>
+</html>
